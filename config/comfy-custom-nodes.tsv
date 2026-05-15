@@ -1,0 +1,14 @@
+# bundles	slug	target_dir	git_url	notes
+community,identity-consent	fayens	ComfyUI-Fayens	https://github.com/iFayens/ComfyUI-Fayens.git	Consent-only identity-transfer helpers for Fayens iSwap/iVatar workflows.
+community,video-advanced	iamccs	IAMCCS-nodes	https://github.com/IAMCCS/IAMCCS-nodes.git	Wan2.x LoRA/motion helper nodes discussed in Reddit workflow posts.
+community,composition	pixaroma	ComfyUI-Pixaroma	https://github.com/pixaroma/ComfyUI-Pixaroma.git	Scene composition, paint, crop, compare, and 3D reference helper nodes.
+community,audio-reactive	ryan-on-the-inside	ComfyUI_RyanOnTheInside	https://github.com/ryanontheinside/ComfyUI_RyanOnTheInside.git	Audio/video reactive node pack with ACE-Step related helpers.
+community,audio	music-tools	ComfyUI_MusicTools	https://github.com/jeankassio/ComfyUI_MusicTools.git	Audio mastering, stem separation, LUFS normalization, and AI vocal cleanup nodes discussed on Reddit.
+community,video-advanced,wan-remix	rgthree	rgthree-comfy	https://github.com/rgthree/rgthree-comfy.git	Power Lora Loader and workflow UX helper nodes required by Wan2.2 Remix workflow.
+community,video-advanced,wan-remix	video-helper-suite	ComfyUI-VideoHelperSuite	https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git	VHS video combine/export nodes required by Wan2.2 Remix workflow.
+community,video-advanced,wan-remix	kj-nodes	ComfyUI-KJNodes	https://github.com/kijai/ComfyUI-KJNodes.git	Wan block swap and SageAttention helper nodes required by Wan2.2 Remix workflow.
+community,video-advanced,wan-remix	comfyui-gguf	ComfyUI-GGUF	https://github.com/city96/ComfyUI-GGUF.git	GGUF model loader nodes used by Wan2.2 Remix workflow variants.
+community,video-advanced,wan-remix	vrgamedevgirl	comfyui-vrgamedevgirl	https://github.com/vrgamegirl19/comfyui-vrgamedevgirl.git	FastUnsharpSharpen node used by Wan2.2 Remix workflow.
+community,video-advanced,video-restyle	wan-video-wrapper	ComfyUI-WanVideoWrapper	https://github.com/kijai/ComfyUI-WanVideoWrapper.git	WanVideo* loader, sampler, encoder/decoder, VACE, SLG, and text encoder nodes required by Shane video restyle workflow.
+community,video-advanced,video-restyle	depth-anything-v2	ComfyUI-DepthAnythingV2	https://github.com/kijai/ComfyUI-DepthAnythingV2.git	DepthAnything_V2 and model downloader nodes required by Shane video restyle workflow.
+community,video-advanced,video-restyle	controlnet-aux	comfyui_controlnet_aux	https://github.com/Fannovel16/comfyui_controlnet_aux.git	CannyEdgePreprocessor and other ControlNet auxiliary preprocessors required by Shane video restyle workflow.

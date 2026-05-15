@@ -1,0 +1,143 @@
+services:
+  comfyui:
+    build:
+      context: .
+      dockerfile: docker/comfyui/Dockerfile
+      args:
+        CUDA_IMAGE: ${COMFY_CUDA_IMAGE:-nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04}
+        COMFYUI_REF: ${COMFYUI_REF:-master}
+        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu130}
+    image: ${COMFYUI_IMAGE:-self-hosted-imgen-comfyui}:${COMFYUI_IMAGE_TAG:-local}
+    restart: unless-stopped
+    ports:
+      - "${COMFYUI_PORT:-8188}:8188"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      COMFYUI_EXTRA_ARGS: ${COMFYUI_EXTRA_ARGS:-}
+      COMFYUI_INSTALL_EXTRA_REQUIREMENTS: ${COMFYUI_INSTALL_EXTRA_REQUIREMENTS:-0}
+      COMFYUI_EXTRA_PIP_PACKAGES: ${COMFYUI_EXTRA_PIP_PACKAGES:-sageattention}
+      HF_HOME: /opt/ComfyUI/.cache/huggingface
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_HUB_ENABLE_HF_TRANSFER: ${HF_HUB_ENABLE_HF_TRANSFER:-1}
+      PYTORCH_CUDA_ALLOC_CONF: ${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}
+    volumes:
+      - ./data/comfyui/input:/opt/ComfyUI/input
+      - ./data/comfyui/output:/opt/ComfyUI/output
+      - ./data/comfyui/models:/opt/ComfyUI/models
+      - ./data/comfyui/custom_nodes:/opt/ComfyUI/custom_nodes
+      - ./data/comfyui/user:/opt/ComfyUI/user
+      - ./workflows:/opt/ComfyUI/user/default/workflows/local:ro
+    shm_size: ${COMFY_SHM_SIZE:-16g}
+    cpus: ${COMFY_CPUS:-16}
+    mem_limit: ${COMFY_MEM_LIMIT:-96g}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8188/system_stats >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  ollama:
+    image: ollama/ollama:${OLLAMA_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+      OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
+      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
+    volumes:
+      - ./data/ollama:/root/.ollama
+    cpus: ${OLLAMA_CPUS:-16}
+    mem_limit: ${OLLAMA_MEM_LIMIT:-96g}
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:${OPEN_WEBUI_TAG:-main}
+    restart: unless-stopped
+    ports:
+      - "${OPEN_WEBUI_PORT:-3000}:8080"
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_AUTH: ${WEBUI_AUTH:-true}
+      ENABLE_SIGNUP: ${OPEN_WEBUI_ENABLE_SIGNUP:-true}
+      DEFAULT_USER_ROLE: ${DEFAULT_USER_ROLE:-user}
+      ENABLE_PERSISTENT_CONFIG: ${OPEN_WEBUI_ENABLE_PERSISTENT_CONFIG:-true}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL:-}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD:-}
+    volumes:
+      - ./data/open-webui:/app/backend/data
+    depends_on:
+      - ollama
+
+  results:
+    image: filebrowser/filebrowser:${FILEBROWSER_TAG:-latest}
+    restart: unless-stopped
+    command: ["--noauth", "--address", "0.0.0.0", "--port", "80", "--root", "/srv"]
+    ports:
+      - "${RESULTS_PORT:-8090}:80"
+    volumes:
+      - ./data/comfyui/output:/srv/comfyui-output:ro
+      - ./data/comfyui/input:/srv/comfyui-input:ro
+
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_TAG:-latest}
+    restart: unless-stopped
+    user: "${PUID:-1000}:${PGID:-1000}"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/prometheus:/prometheus
+    depends_on:
+      - cadvisor
+      - node-exporter
+
+  grafana:
+    image: grafana/grafana-oss:${GRAFANA_TAG:-latest}
+    restart: unless-stopped
+    user: "${PUID:-1000}:${PGID:-1000}"
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-change-me}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/inference-overview.json
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:${CADVISOR_TAG:-latest}
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "${CADVISOR_PORT:-8089}:8080"
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+
+  node-exporter:
+    image: prom/node-exporter:${NODE_EXPORTER_TAG:-latest}
+    restart: unless-stopped
+    pid: host
+    command:
+      - --path.rootfs=/host
+    ports:
+      - "${NODE_EXPORTER_PORT:-9100}:9100"
+    volumes:
+      - /:/host:ro,rslave

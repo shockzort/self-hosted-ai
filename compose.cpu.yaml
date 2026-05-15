@@ -1,0 +1,11 @@
+services:
+  comfyui:
+    command: ["python", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--enable-manager", "--cpu"]
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      NVIDIA_DRIVER_CAPABILITIES: ""
+
+  ollama:
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      NVIDIA_DRIVER_CAPABILITIES: ""
