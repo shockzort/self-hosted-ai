@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/env.sh"
 
 MANIFEST="${COMFY_CUSTOM_NODES_MANIFEST:-config/comfy-custom-nodes.tsv}"
-CUSTOM_NODES_ROOT="${COMFY_CUSTOM_NODES_ROOT:-data/comfyui/custom_nodes}"
+CUSTOM_NODES_ROOT="${COMFY_CUSTOM_NODES_ROOT:-${SELF_HOSTED_AI_DATA_DIR}/comfyui/custom_nodes}"
 TARGET="${1:-community}"
 
 usage() {

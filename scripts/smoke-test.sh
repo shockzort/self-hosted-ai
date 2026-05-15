@@ -2,24 +2,18 @@
 set -euo pipefail
 
 MODE="${1:-gpu}"
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ -f .env ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source .env
-  set +a
-fi
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/env.sh"
 
-compose_files=(-f compose.yaml)
 if [[ "${MODE}" == "cpu" ]]; then
-  compose_files+=(-f compose.cpu.yaml)
+  compose_files=("${COMPOSE_CPU_FILES[@]}")
 else
-  compose_files+=(-f compose.gpu.yaml)
+  compose_files=("${COMPOSE_GPU_FILES[@]}")
 fi
 
-docker compose --env-file .env "${compose_files[@]}" ps
+docker compose "${COMPOSE_ENV_ARGS[@]}" "${compose_files[@]}" ps
 
 check_url() {
   local name="$1"
@@ -39,7 +33,7 @@ check_url() {
   return 1
 }
 
-check_url "ComfyUI" "http://127.0.0.1:${COMFYUI_PORT:-8188}/system_stats" 60 2
+check_url "ComfyUI" "http://127.0.0.1:${COMFYUI_PORT:-8188}/system_stats" 300 2
 check_url "Open WebUI" "http://127.0.0.1:${OPEN_WEBUI_PORT:-3000}/" 60 2
 check_url "Results browser" "http://127.0.0.1:${RESULTS_PORT:-8090}/" 30 2
 check_url "Prometheus" "http://127.0.0.1:${PROMETHEUS_PORT:-9090}/-/ready" 30 2

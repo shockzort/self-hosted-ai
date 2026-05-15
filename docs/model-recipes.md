@@ -77,7 +77,7 @@ DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh video-advanced
 
 ```bash
 ./scripts/install-comfy-custom-nodes.sh video-restyle
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml restart comfyui
+./scripts/compose.sh restart comfyui
 ```
 
 ## Audio/music
@@ -100,5 +100,5 @@ DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh audio
 Ставьте custom nodes через ComfyUI Manager в интерфейсе или вручную в `data/comfyui/custom_nodes`. После установки зависимостей перезапустите `comfyui`:
 
 ```bash
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml restart comfyui
+./scripts/compose.sh restart comfyui
 ```

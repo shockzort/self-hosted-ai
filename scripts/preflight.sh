@@ -26,24 +26,24 @@ else
   fail "docker is not installed"
 fi
 
-if docker compose version >/tmp/self-hosted-imgen-compose-version.txt 2>&1; then
-  ok "$(cat /tmp/self-hosted-imgen-compose-version.txt)"
+if docker compose version >/tmp/self-hosted-ai-compose-version.txt 2>&1; then
+  ok "$(cat /tmp/self-hosted-ai-compose-version.txt)"
 else
   fail "docker compose is not available"
 fi
 
-if docker info >/tmp/self-hosted-imgen-docker-info.txt 2>&1; then
+if docker info >/tmp/self-hosted-ai-docker-info.txt 2>&1; then
   ok "Docker daemon is reachable"
 else
   fail "Docker daemon is not reachable by this user. Check docker group/rootless Docker or run via sudo."
-  sed -n '1,20p' /tmp/self-hosted-imgen-docker-info.txt >&2 || true
+  sed -n '1,20p' /tmp/self-hosted-ai-docker-info.txt >&2 || true
 fi
 
 gpu_ok=0
 if command -v nvidia-smi >/dev/null 2>&1; then
-  if nvidia-smi >/tmp/self-hosted-imgen-nvidia-smi.txt 2>&1; then
+  if nvidia-smi >/tmp/self-hosted-ai-nvidia-smi.txt 2>&1; then
     ok "nvidia-smi works"
-    sed -n '1,12p' /tmp/self-hosted-imgen-nvidia-smi.txt
+    sed -n '1,12p' /tmp/self-hosted-ai-nvidia-smi.txt
     gpu_ok=1
   else
     if [[ "${ALLOW_CPU_ONLY}" == "1" ]]; then
@@ -51,7 +51,7 @@ if command -v nvidia-smi >/dev/null 2>&1; then
     else
       fail "nvidia-smi failed. Install/fix the NVIDIA driver before GPU mode."
     fi
-    sed -n '1,20p' /tmp/self-hosted-imgen-nvidia-smi.txt >&2 || true
+    sed -n '1,20p' /tmp/self-hosted-ai-nvidia-smi.txt >&2 || true
   fi
 else
   if [[ "${ALLOW_CPU_ONLY}" == "1" ]]; then
@@ -66,11 +66,11 @@ if [[ "${ALLOW_CPU_ONLY}" == "1" ]]; then
 elif [[ "${gpu_ok}" == "1" ]] && docker info >/dev/null 2>&1; then
   if ! command -v nvidia-ctk >/dev/null 2>&1; then
     fail "nvidia-ctk is not installed. Run ./scripts/install-nvidia-container-toolkit.sh with sudo-capable user."
-  elif docker run --rm --gpus all nvidia/cuda:13.0.2-base-ubuntu24.04 nvidia-smi >/tmp/self-hosted-imgen-docker-gpu.txt 2>&1; then
+  elif docker run --rm --gpus all nvidia/cuda:13.0.2-base-ubuntu24.04 nvidia-smi >/tmp/self-hosted-ai-docker-gpu.txt 2>&1; then
     ok "Docker GPU runtime works"
   else
     fail "Docker GPU runtime failed. Install/configure NVIDIA Container Toolkit."
-    sed -n '1,40p' /tmp/self-hosted-imgen-docker-gpu.txt >&2 || true
+    sed -n '1,40p' /tmp/self-hosted-ai-docker-gpu.txt >&2 || true
   fi
 fi
 

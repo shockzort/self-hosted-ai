@@ -11,6 +11,7 @@
 
 ```bash
 cp .env.example .env
+./scripts/init.sh
 ./scripts/preflight.sh
 ./scripts/start.sh
 ```
@@ -38,6 +39,8 @@ ALLOW_CPU_ONLY=1 ./scripts/preflight.sh
 
 Grafana credentials берутся из `.env`: по умолчанию `admin` / `change-me`.
 Open WebUI signup включен по умолчанию; первый зарегистрированный пользователь становится администратором на пустой базе.
+
+Постоянные данные лежат в `SELF_HOSTED_AI_DATA_DIR` из `.env` (`./data` по умолчанию), а Docker Compose проект явно называется `self-hosted-ai`. Для ручных compose-команд используйте `./scripts/compose.sh ...`: он всегда подставляет правильный project name, compose-файлы и пути. Если репозиторий переехал в другой каталог, остановите старый проект командой `./scripts/compose.sh down` без `-v`, перенесите/проверьте `data`, затем запускайте `./scripts/start.sh` из нового каталога.
 
 ## Модели
 

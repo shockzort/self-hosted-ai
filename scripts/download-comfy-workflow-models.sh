@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}"
-
-if [[ -f .env ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source .env
-  set +a
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/env.sh"
 
 MANIFEST="${COMFY_WORKFLOW_MANIFEST:-config/comfy-workflows.tsv}"
-WORKFLOW_ROOT="${COMFY_WORKFLOW_ROOT:-workflows}"
-MODEL_ROOT="${COMFY_MODEL_ROOT:-data/comfyui/models}"
+WORKFLOW_ROOT="${COMFY_WORKFLOW_ROOT:-${SELF_HOSTED_AI_WORKFLOWS_DIR}}"
+MODEL_ROOT="${COMFY_MODEL_ROOT:-${SELF_HOSTED_AI_DATA_DIR}/comfyui/models}"
 TARGET="${1:-starter}"
 
 usage() {

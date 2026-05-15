@@ -12,7 +12,7 @@ COMFYUI_EXTRA_PIP_PACKAGES=sageattention
 Затем пересоберите/пересоздайте ComfyUI:
 
 ```bash
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml up -d --build --force-recreate comfyui
+./scripts/compose.sh up -d --build --force-recreate comfyui
 ```
 
 ## `nvidia-smi` failed
@@ -65,6 +65,6 @@ docker info
 В CPU-режиме DCGM exporter не запускается. В GPU-режиме проверьте:
 
 ```bash
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml ps dcgm-exporter
+./scripts/compose.sh ps dcgm-exporter
 curl http://localhost:9400/metrics
 ```

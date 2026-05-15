@@ -51,4 +51,4 @@ update:
 	./scripts/update-images.sh
 
 config:
-	docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml config
+	./scripts/compose.sh config

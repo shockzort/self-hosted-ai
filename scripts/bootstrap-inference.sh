@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 BUNDLE="${1:-starter}"
 MODE="${MODE:-gpu}"
 
-./scripts/init.sh
+"${SCRIPT_DIR}/init.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/env.sh"
 ./scripts/install-comfy-workflows.sh "${BUNDLE}"
 ./scripts/download-comfy-workflow-models.sh "${BUNDLE}"
 

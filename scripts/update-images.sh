@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-./scripts/init.sh >/dev/null
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml pull
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml build --pull comfyui
+"${SCRIPT_DIR}/init.sh" >/dev/null
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/env.sh"
+docker compose "${COMPOSE_ENV_ARGS[@]}" "${COMPOSE_GPU_FILES[@]}" pull
+docker compose "${COMPOSE_ENV_ARGS[@]}" "${COMPOSE_GPU_FILES[@]}" build --pull comfyui

@@ -1,18 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}"
-
-if [[ -f .env ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source .env
-  set +a
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/env.sh"
 
 MANIFEST="${MANIFEST:-config/comfy-models.tsv}"
-MODEL_ROOT="${COMFY_MODEL_ROOT:-data/comfyui/models}"
+MODEL_ROOT="${COMFY_MODEL_ROOT:-${SELF_HOSTED_AI_DATA_DIR}/comfyui/models}"
 
 usage() {
   cat <<USAGE

@@ -1,3 +1,5 @@
+name: ${COMPOSE_PROJECT_NAME:-self-hosted-ai}
+
 services:
   comfyui:
     build:
@@ -7,7 +9,7 @@ services:
         CUDA_IMAGE: ${COMFY_CUDA_IMAGE:-nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04}
         COMFYUI_REF: ${COMFYUI_REF:-master}
         TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu130}
-    image: ${COMFYUI_IMAGE:-self-hosted-imgen-comfyui}:${COMFYUI_IMAGE_TAG:-local}
+    image: ${COMFYUI_IMAGE:-self-hosted-ai-comfyui}:${COMFYUI_IMAGE_TAG:-local}
     restart: unless-stopped
     ports:
       - "${COMFYUI_PORT:-8188}:8188"
@@ -22,12 +24,12 @@ services:
       HF_HUB_ENABLE_HF_TRANSFER: ${HF_HUB_ENABLE_HF_TRANSFER:-1}
       PYTORCH_CUDA_ALLOC_CONF: ${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}
     volumes:
-      - ./data/comfyui/input:/opt/ComfyUI/input
-      - ./data/comfyui/output:/opt/ComfyUI/output
-      - ./data/comfyui/models:/opt/ComfyUI/models
-      - ./data/comfyui/custom_nodes:/opt/ComfyUI/custom_nodes
-      - ./data/comfyui/user:/opt/ComfyUI/user
-      - ./workflows:/opt/ComfyUI/user/default/workflows/local:ro
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/comfyui/input:/opt/ComfyUI/input
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/comfyui/output:/opt/ComfyUI/output
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/comfyui/models:/opt/ComfyUI/models
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/comfyui/custom_nodes:/opt/ComfyUI/custom_nodes
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/comfyui/user:/opt/ComfyUI/user
+      - ${SELF_HOSTED_AI_WORKFLOWS_DIR:-./workflows}:/opt/ComfyUI/user/default/workflows/local:ro
     shm_size: ${COMFY_SHM_SIZE:-16g}
     cpus: ${COMFY_CPUS:-16}
     mem_limit: ${COMFY_MEM_LIMIT:-96g}
@@ -49,7 +51,7 @@ services:
       OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
       OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
     volumes:
-      - ./data/ollama:/root/.ollama
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/ollama:/root/.ollama
     cpus: ${OLLAMA_CPUS:-16}
     mem_limit: ${OLLAMA_MEM_LIMIT:-96g}
 
@@ -67,7 +69,7 @@ services:
       WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL:-}
       WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD:-}
     volumes:
-      - ./data/open-webui:/app/backend/data
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/open-webui:/app/backend/data
     depends_on:
       - ollama
 
@@ -78,8 +80,8 @@ services:
     ports:
       - "${RESULTS_PORT:-8090}:80"
     volumes:
-      - ./data/comfyui/output:/srv/comfyui-output:ro
-      - ./data/comfyui/input:/srv/comfyui-input:ro
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/comfyui/output:/srv/comfyui-output:ro
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/comfyui/input:/srv/comfyui-input:ro
 
   prometheus:
     image: prom/prometheus:${PROMETHEUS_TAG:-latest}
@@ -93,7 +95,7 @@ services:
       - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./data/prometheus:/prometheus
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/prometheus:/prometheus
     depends_on:
       - cadvisor
       - node-exporter
@@ -110,7 +112,7 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/inference-overview.json
     volumes:
-      - ./data/grafana:/var/lib/grafana
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/grafana:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:

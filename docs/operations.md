@@ -4,6 +4,7 @@
 
 ```bash
 cp .env.example .env
+./scripts/init.sh
 ./scripts/preflight.sh
 ./scripts/start.sh
 ```
@@ -17,6 +18,27 @@ ALLOW_CPU_ONLY=1 ./scripts/preflight.sh
 
 `./scripts/start.sh` перед запуском ставит ComfyUI workflow JSON из `COMFY_WORKFLOW_BUNDLE_ON_START` (`starter` по умолчанию). Если нужно также автоматически скачивать модели на старте, задайте `COMFY_MODEL_BUNDLE_ON_START=starter` в `.env`.
 
+## Переезд каталога
+
+Стек использует bind mount для постоянных данных. В `.env` зафиксированы:
+
+- `COMPOSE_PROJECT_NAME=self-hosted-ai`
+- `SELF_HOSTED_AI_DATA_DIR=./data`
+- `SELF_HOSTED_AI_WORKFLOWS_DIR=./workflows`
+
+Скрипты запуска разворачивают относительные пути в абсолютные перед вызовом `docker compose`, поэтому новые контейнеры получают mount из текущего репозитория. При переезде:
+
+```bash
+cd /old/path/self-hosted-ai
+./scripts/compose.sh down
+
+cd /new/path/self-hosted-ai
+./scripts/init.sh
+./scripts/start.sh
+```
+
+Не запускайте `docker compose down -v` или `./scripts/compose.sh down -v`, пока нужны модели, базы Open WebUI, настройки ComfyUI, Grafana и история. Старый каталог можно удалять только после проверки, что `docker inspect <container>` показывает mount из нового `SELF_HOSTED_AI_DATA_DIR`.
+
 ## UI credentials
 
 Grafana:
@@ -28,7 +50,7 @@ Grafana:
 Если пароль Grafana меняется после создания `data/grafana/grafana.db`, сбросьте его внутри контейнера:
 
 ```bash
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml exec grafana grafana-cli admin reset-admin-password '<new-password>'
+./scripts/compose.sh exec grafana grafana-cli admin reset-admin-password '<new-password>'
 ```
 
 Open WebUI:
@@ -56,7 +78,7 @@ Dashboards provisioned from `monitoring/grafana/dashboards` into folder `Inferen
 
 ```bash
 ./scripts/generate-grafana-dashboards.py
-docker compose --env-file .env -f compose.yaml -f compose.gpu.yaml restart grafana
+./scripts/compose.sh restart grafana
 ```
 
 ## Доступ из локальной сети
