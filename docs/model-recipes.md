@@ -10,6 +10,36 @@
 
 После загрузки откройте Open WebUI и выберите модель в dropdown. История чатов хранится в `data/open-webui`.
 
+## Code agents
+
+Для OpenCode/Cline/Roo/Claude Code используйте отдельный llama.cpp backend:
+
+```bash
+./scripts/code-llm.sh list
+./scripts/code-llm.sh start gemma4-fast
+./scripts/code-llm.sh smoke
+```
+
+Default endpoint: `http://localhost:8080/v1`, model id: `code/gemma4-fast`, key: `local-code-llm`. Подробности и альтернативные профили: `docs/code-agents.md`.
+
+Для управления через браузер:
+
+```bash
+./scripts/code-llm-manager.sh start
+```
+
+UI доступен на `http://127.0.0.1:8091`; через него можно выгружать модель, переключать профили, скачивать GGUF и добавлять новые coding profiles.
+
+Для GLM 5+ используется отдельный `ik_llama.cpp` engine:
+
+```bash
+./scripts/code-llm.sh build-engine ik
+./scripts/code-llm.sh download glm5-extreme
+./scripts/code-llm.sh start glm5-extreme
+```
+
+На RTX 5090 профиль собирается с `IK_LLAMA_CUDA_ARCHITECTURES=120`; default параллелизм сборки `16`, при необходимости меняется через `IK_LLAMA_BUILD_JOBS`.
+
 ## Image generation
 
 Быстрый старт:

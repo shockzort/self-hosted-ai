@@ -58,6 +58,10 @@ mkdir -p \
   "${SELF_HOSTED_AI_DATA_DIR}/comfyui/custom_nodes" \
   "${SELF_HOSTED_AI_DATA_DIR}/comfyui/user" \
   "${SELF_HOSTED_AI_DATA_DIR}/ollama" \
+  "${SELF_HOSTED_AI_DATA_DIR}/code-llm/models" \
+  "${SELF_HOSTED_AI_DATA_DIR}/code-llm-manager" \
+  "${SELF_HOSTED_AI_DATA_DIR}/llama.cpp" \
+  "${SELF_HOSTED_AI_DATA_DIR}/huggingface" \
   "${SELF_HOSTED_AI_DATA_DIR}/open-webui" \
   "${SELF_HOSTED_AI_DATA_DIR}/prometheus" \
   "${SELF_HOSTED_AI_DATA_DIR}/grafana" \

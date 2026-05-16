@@ -1,0 +1,8 @@
+services:
+  code-llm:
+    image: ${CODE_LLM_CPU_IMAGE:-ghcr.io/ggml-org/llama.cpp:server}
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      NVIDIA_DRIVER_CAPABILITIES: ""
+      CODE_LLM_N_GPU_LAYERS: ${CODE_LLM_CPU_N_GPU_LAYERS:-0}
+      CODE_LLM_FLASH_ATTN: ${CODE_LLM_CPU_FLASH_ATTN:-0}

@@ -32,3 +32,5 @@ fi
 
 COMPOSE_GPU_FILES=(-f compose.yaml -f compose.gpu.yaml)
 COMPOSE_CPU_FILES=(-f compose.yaml -f compose.cpu.yaml)
+COMPOSE_CODE_LLM_GPU_FILES=(-f compose.yaml -f compose.gpu.yaml -f compose.code-llm.yaml -f compose.code-llm.gpu.yaml)
+COMPOSE_CODE_LLM_CPU_FILES=(-f compose.yaml -f compose.cpu.yaml -f compose.code-llm.yaml -f compose.code-llm.cpu.yaml)

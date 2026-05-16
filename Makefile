@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: init preflight start start-cpu stop logs smoke pull-llm workflows custom-nodes models model-files dashboards bootstrap open-webui-signup update config
+.PHONY: init preflight start start-cpu stop logs smoke pull-llm code-llm code-llm-smoke code-llm-download code-llm-build-ik code-llm-manager workflows custom-nodes models model-files dashboards bootstrap open-webui-signup update config
 
 init:
 	./scripts/init.sh
@@ -25,6 +25,21 @@ smoke:
 
 pull-llm:
 	./scripts/pull-ollama-models.sh
+
+code-llm:
+	./scripts/code-llm.sh start
+
+code-llm-smoke:
+	./scripts/code-llm.sh smoke
+
+code-llm-download:
+	./scripts/code-llm.sh download
+
+code-llm-build-ik:
+	./scripts/code-llm.sh build-engine ik
+
+code-llm-manager:
+	./scripts/code-llm-manager.sh start
 
 workflows:
 	./scripts/install-comfy-workflows.sh starter

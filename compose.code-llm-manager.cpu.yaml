@@ -1,0 +1,5 @@
+services:
+  code-llm-manager:
+    environment:
+      NVIDIA_VISIBLE_DEVICES: void
+      NVIDIA_DRIVER_CAPABILITIES: ""

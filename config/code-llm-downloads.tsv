@@ -1,0 +1,8 @@
+# profile	description	hf_repo	include	local_dir	local_file	min_disk_gib
+gemma4-fast	Gemma 4 MXFP4 MoE GGUF	noctrex/gemma-4-26B-A4B-it-MXFP4_MOE-GGUF	gemma-4-26B-A4B-it-MXFP4_MOE.gguf	gemma4	gemma-4-26B-A4B-it-MXFP4_MOE.gguf	25
+gemma4-thinking	Gemma 4 MXFP4 MoE GGUF	noctrex/gemma-4-26B-A4B-it-MXFP4_MOE-GGUF	gemma-4-26B-A4B-it-MXFP4_MOE.gguf	gemma4	gemma-4-26B-A4B-it-MXFP4_MOE.gguf	25
+qwen36-fast	Qwen3.6 35B-A3B UD-Q4_K_M GGUF	unsloth/Qwen3.6-35B-A3B-GGUF	Qwen3.6-35B-A3B-UD-Q4_K_M.gguf	qwen36	Qwen3.6-35B-A3B-UD-Q4_K_M.gguf	35
+qwen36-thinking	Qwen3.6 35B-A3B UD-Q4_K_M GGUF	unsloth/Qwen3.6-35B-A3B-GGUF	Qwen3.6-35B-A3B-UD-Q4_K_M.gguf	qwen36	Qwen3.6-35B-A3B-UD-Q4_K_M.gguf	35
+qwen3-coder-fast	Qwen3-Coder 30B-A3B Q4_K_M GGUF	lmstudio-community/Qwen3-Coder-30B-A3B-Instruct-GGUF	Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf	qwen3-coder	Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf	30
+qwen3-coder-thinking	Qwen3-Coder 30B-A3B Q4_K_M GGUF	lmstudio-community/Qwen3-Coder-30B-A3B-Instruct-GGUF	Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf	qwen3-coder	Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf	30
+glm5-extreme	GLM-5.1 1.673 bpw GGUF for 128 GiB RAM plus 24+ GiB VRAM	sokann/GLM-5.1-GGUF-1.673bpw	GLM-5.1-GGUF-1.673bpw.gguf	glm5	GLM-5.1-GGUF-1.673bpw.gguf	180

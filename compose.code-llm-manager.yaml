@@ -1,0 +1,33 @@
+services:
+  code-llm-manager:
+    build:
+      context: .
+      dockerfile: docker/code-llm-manager/Dockerfile
+    image: ${CODE_LLM_MANAGER_IMAGE:-self-hosted-ai-code-llm-manager:local}
+    restart: unless-stopped
+    user: "${PUID:-1000}:${PGID:-1000}"
+    group_add:
+      - "${DOCKER_GID:-0}"
+    working_dir: ${CODE_LLM_MANAGER_REPO_DIR:-/workspace}
+    command:
+      - scripts/code-llm-manager.py
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8091"
+    ports:
+      - "${CODE_LLM_MANAGER_BIND:-127.0.0.1}:${CODE_LLM_MANAGER_PORT:-8091}:8091"
+    environment:
+      HOME: /tmp
+      PYTHONDONTWRITEBYTECODE: "1"
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
+    volumes:
+      - .:${CODE_LLM_MANAGER_REPO_DIR:-/workspace}
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8091/api/status >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 10s

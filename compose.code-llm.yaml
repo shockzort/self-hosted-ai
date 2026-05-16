@@ -1,0 +1,63 @@
+services:
+  code-llm:
+    image: ${CODE_LLM_IMAGE:-ghcr.io/ggml-org/llama.cpp:server}
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/opt/self-hosted-ai/code-llm-entrypoint.sh"]
+    ports:
+      - "${CODE_LLM_PORT:-8080}:8080"
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_HUB_ENABLE_HF_TRANSFER: ${HF_HUB_ENABLE_HF_TRANSFER:-1}
+      CODE_LLM_CONTAINER_PORT: 8080
+      CODE_LLM_HF_REPO: ${CODE_LLM_HF_REPO:-noctrex/gemma-4-26B-A4B-it-MXFP4_MOE-GGUF:MXFP4_MOE}
+      CODE_LLM_HF_FILE: ${CODE_LLM_HF_FILE:-}
+      CODE_LLM_MODEL: ${CODE_LLM_MODEL:-}
+      CODE_LLM_ALIAS: ${CODE_LLM_ALIAS:-code/gemma4-fast}
+      CODE_LLM_CTX_SIZE: ${CODE_LLM_CTX_SIZE:-32768}
+      CODE_LLM_N_GPU_LAYERS: ${CODE_LLM_N_GPU_LAYERS:-999}
+      CODE_LLM_N_CPU_MOE: ${CODE_LLM_N_CPU_MOE:-8}
+      CODE_LLM_FLASH_ATTN: ${CODE_LLM_FLASH_ATTN:-1}
+      CODE_LLM_CACHE_TYPE_K: ${CODE_LLM_CACHE_TYPE_K:-q8_0}
+      CODE_LLM_CACHE_TYPE_V: ${CODE_LLM_CACHE_TYPE_V:-q8_0}
+      CODE_LLM_BATCH_SIZE: ${CODE_LLM_BATCH_SIZE:-512}
+      CODE_LLM_UBATCH_SIZE: ${CODE_LLM_UBATCH_SIZE:-512}
+      CODE_LLM_PARALLEL: ${CODE_LLM_PARALLEL:-1}
+      CODE_LLM_JINJA: ${CODE_LLM_JINJA:-1}
+      CODE_LLM_REASONING: ${CODE_LLM_REASONING:-off}
+      CODE_LLM_REASONING_BUDGET: ${CODE_LLM_REASONING_BUDGET:-}
+      CODE_LLM_TEMP: ${CODE_LLM_TEMP:-0.7}
+      CODE_LLM_TOP_P: ${CODE_LLM_TOP_P:-0.8}
+      CODE_LLM_TOP_K: ${CODE_LLM_TOP_K:-20}
+      CODE_LLM_MIN_P: ${CODE_LLM_MIN_P:-0.0}
+      CODE_LLM_PRESENCE_PENALTY: ${CODE_LLM_PRESENCE_PENALTY:-0.0}
+      CODE_LLM_REPEAT_PENALTY: ${CODE_LLM_REPEAT_PENALTY:-1.0}
+      CODE_LLM_NO_MMAP: ${CODE_LLM_NO_MMAP:-1}
+      CODE_LLM_METRICS: ${CODE_LLM_METRICS:-1}
+      CODE_LLM_API_KEY: ${CODE_LLM_API_KEY:-}
+      CODE_LLM_OVERRIDE_TENSORS: ${CODE_LLM_OVERRIDE_TENSORS:-}
+      CODE_LLM_CACHE_RAM: ${CODE_LLM_CACHE_RAM:-}
+      CODE_LLM_EXTRA_ARGS: ${CODE_LLM_EXTRA_ARGS:-}
+    volumes:
+      - ./docker/code-llm/entrypoint.sh:/opt/self-hosted-ai/code-llm-entrypoint.sh:ro
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/code-llm/models:/models
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/llama.cpp:/root/.cache/llama.cpp
+      - ${SELF_HOSTED_AI_DATA_DIR:-./data}/huggingface:/root/.cache/huggingface
+    shm_size: ${CODE_LLM_SHM_SIZE:-8g}
+    cpus: ${CODE_LLM_CPUS:-16}
+    mem_limit: ${CODE_LLM_MEM_LIMIT:-96g}
+    healthcheck:
+      test: ["CMD-SHELL", "(command -v curl >/dev/null 2>&1 && curl -fsS http://127.0.0.1:8080/health >/dev/null) || (command -v wget >/dev/null 2>&1 && wget -qO- http://127.0.0.1:8080/health >/dev/null) || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 60
+      start_period: 60s
+
+  open-webui:
+    environment:
+      ENABLE_OPENAI_API: ${OPEN_WEBUI_ENABLE_OPENAI_API:-true}
+      OPENAI_API_BASE_URLS: ${OPEN_WEBUI_OPENAI_API_BASE_URLS:-http://code-llm:8080/v1}
+      OPENAI_API_KEYS: ${OPEN_WEBUI_OPENAI_API_KEYS:-local-code-llm}
+      DEFAULT_MODELS: ${OPEN_WEBUI_DEFAULT_MODELS:-code/gemma4-fast}
+    depends_on:
+      - ollama
+      - code-llm

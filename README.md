@@ -4,6 +4,7 @@
 
 - ComfyUI для image/video/audio workflows.
 - Ollama + Open WebUI для локальных LLM.
+- Отдельный llama.cpp server для локальных кодовых агентов через OpenAI-compatible API.
 - Prometheus, Grafana, cAdvisor, node-exporter и NVIDIA DCGM exporter для мониторинга CPU/RAM/GPU.
 - Result browser для просмотра истории генераций из локальной сети.
 
@@ -29,6 +30,7 @@ ALLOW_CPU_ONLY=1 ./scripts/preflight.sh
 | --- | --- |
 | ComfyUI | `http://localhost:8188` |
 | Open WebUI | `http://localhost:3000` |
+| Code LLM API | `http://localhost:8080/v1` |
 | Results browser | `http://localhost:8090` |
 | Grafana | `http://localhost:3001` |
 | Prometheus | `http://localhost:9090` |
@@ -50,6 +52,29 @@ Open WebUI signup включен по умолчанию; первый заре�
 ./scripts/pull-ollama-models.sh
 # или явно
 ./scripts/pull-ollama-models.sh qwen3:14b gemma3:12b deepseek-r1:14b
+```
+
+Поднять отдельный llama.cpp API для OpenCode/Cline/Roo/Claude Code:
+
+```bash
+./scripts/code-llm.sh list
+./scripts/code-llm.sh start gemma4-fast
+```
+
+Локальный GUI для управления coding моделями:
+
+```bash
+./scripts/code-llm-manager.sh start
+```
+
+Он открывается на `http://127.0.0.1:8091` и умеет показывать RAM/VRAM/disk, текущий профиль, скачивать GGUF, выгружать модель, переключать профили и добавлять новые записи в `config/code-llm-models.tsv`.
+
+Профили Gemma 4 / Qwen 3.6 / Qwen3-Coder / GLM 5+ и клиентские конфиги описаны в `docs/code-agents.md`. Тяжелый GLM профиль требует отдельной сборки engine и явной загрузки модели:
+
+```bash
+./scripts/code-llm.sh build-engine ik
+./scripts/code-llm.sh download glm5-extreme
+./scripts/code-llm.sh start glm5-extreme
 ```
 
 Посмотреть и загрузить ComfyUI-пресеты:

@@ -2,6 +2,8 @@
 
 Дата исследования: 2026-05-10.
 
+Дополнение по локальным кодовым агентам: 2026-05-16.
+
 ## Выбранная архитектура
 
 Базовый UI выбран как ComfyUI: он поддерживает graph/node workflows и официальные template workflows для image, video и audio. Для LLM выбран отдельный контур Ollama + Open WebUI, потому что Ollama официально запускается в Docker на Linux с NVIDIA GPU, а Open WebUI дает браузерный интерфейс, историю чатов и доступ из LAN.
@@ -34,3 +36,13 @@
 ## Практический вывод
 
 Для RTX 5090/128GB RAM разумный стартовый набор: Flux Schnell/Dev FP8 для image, Flux Kontext для editing/style workflows, Wan2.2 5B для первого video workflow, ACE-Step v1 для audio/music, и Ollama модели уровня `qwen3:14b`, `gemma3:12b`, `deepseek-r1:14b`. Более тяжелые 14B video workflows и LLM 30B+ стоит включать после проверки VRAM и температуры под мониторингом.
+
+## Локальные кодовые агенты
+
+- Для OpenCode/Cline/Roo Code и похожих клиентов нужен OpenAI-compatible `/v1/chat/completions` backend; Claude Code дополнительно требует gateway с Anthropic Messages `/v1/messages`: https://code.claude.com/docs/en/llm-gateway
+- llama.cpp `llama-server` предоставляет OpenAI-compatible endpoints, web UI, metrics и function/tool calling; для tool calling нужен `--jinja`: https://www.mintlify.com/ggml-org/llama.cpp/inference/server и https://www.mintlify.com/ggml-org/llama.cpp/advanced/function-calling
+- Habr-тест от 2026-05-11 сравнил Gemma 4 26B-A4B, Qwen 3.6 35B-A3B и Qwen3-Coder 30B-A3B на агентских coding задачах и показал, что fast-режим Gemma 4 лучше всего следовал проектным правилам; использованные параметры перенесены в `config/code-llm-models.tsv`: https://habr.com/ru/articles/1033808/
+- GLM 5+ добавлен как отдельный тяжелый профиль `glm5-extreme` на базе GLM-5.1 1.673 bpw GGUF: https://huggingface.co/sokann/GLM-5.1-GGUF-1.673bpw. Карточка модели указывает 128 GiB system RAM + 24 GiB VRAM, размер 146.840 GiB и рекомендуемые флаги для 88064 context. Для ориентира по другим GLM-5.1 GGUF сборкам использован reference set: https://huggingface.co/bartowski/zai-org_GLM-5.1-GGUF
+- Для GLM-5.1 mainline `llama.cpp:server-cuda` недостаточен: в проверенном образе нет `-mla`, `-khad`, `-mqkv`, `-muge`, `-wgt`. Поэтому добавлен локальный `ik_llama.cpp` engine. На RTX 5090 он собирается с `IK_LLAMA_CUDA_ARCHITECTURES=120`; `IK_LLAMA_DEFAULT_BUILD_JOBS=16` выбран после проверки, потому что `-j32` ронял `nvcc`, а `-j8` избыточно консервативен для этой машины.
+- Для Open WebUI внешний OpenAI-compatible backend задается через `OPENAI_API_BASE_URLS` и `OPENAI_API_KEYS`; из-за PersistentConfig уже запущенную базу иногда нужно поправить в Admin Settings -> Connections: https://docs.openwebui.com/reference/env-configuration/
+- OpenCode поддерживает кастомного OpenAI-compatible провайдера через `@ai-sdk/openai-compatible` и `options.baseURL`; пример лежит в `config/code-agents/opencode.json`: https://opencode.ai/docs/providers
