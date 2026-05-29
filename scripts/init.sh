@@ -34,6 +34,17 @@ replace_env_value COMPOSE_PROJECT_NAME self-hosted-imgen self-hosted-ai
 replace_env_value COMFYUI_IMAGE self-hosted-imgen-comfyui self-hosted-ai-comfyui
 grep -q '^SELF_HOSTED_AI_DATA_DIR=' .env || set_env SELF_HOSTED_AI_DATA_DIR ./data
 grep -q '^SELF_HOSTED_AI_WORKFLOWS_DIR=' .env || set_env SELF_HOSTED_AI_WORKFLOWS_DIR ./workflows
+grep -q '^DCGM_EXPORTER_IMAGE=' .env || set_env DCGM_EXPORTER_IMAGE nvidia/dcgm-exporter
+replace_env_value DCGM_EXPORTER_TAG 4.5.3-4.8.2-distroless 4.5.2-4.8.1-distroless
+grep -q '^DCGM_EXPORTER_AUTO_FALLBACK=' .env || set_env DCGM_EXPORTER_AUTO_FALLBACK 1
+grep -q '^DCGM_EXPORTER_FALLBACK_IMAGES=' .env || set_env DCGM_EXPORTER_FALLBACK_IMAGES '"nvcr.io/nvidia/k8s/dcgm-exporter:4.5.3-4.8.2-distroless nvidia/dcgm-exporter:4.5.2-4.8.1-distroless"'
+grep -q '^COMFYUI_REQUIREMENTS_CACHE=' .env || set_env COMFYUI_REQUIREMENTS_CACHE 1
+grep -q '^COMFYUI_REQUIREMENTS_PIP_ARGS=' .env || set_env COMFYUI_REQUIREMENTS_PIP_ARGS '"--timeout 60 --retries 5"'
+grep -q '^COMFYUI_REQUIREMENTS_SKIP=' .env || set_env COMFYUI_REQUIREMENTS_SKIP ''
+grep -q '^SMOKE_STATUS_EVERY=' .env || set_env SMOKE_STATUS_EVERY 10
+grep -q '^SMOKE_CURL_TIMEOUT=' .env || set_env SMOKE_CURL_TIMEOUT 5
+grep -q '^SMOKE_DELAY=' .env || set_env SMOKE_DELAY 2
+grep -q '^SMOKE_COMFY_ATTEMPTS=' .env || set_env SMOKE_COMFY_ATTEMPTS 300
 
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/env.sh"

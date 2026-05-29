@@ -1,39 +1,37 @@
-# Self-hosted image/video/audio генерация
+# Self-hosted image/video/audio generation
 
-В этой задаче требуется разработать тулинг (скрипты, окружения, инструкции - далее, система инференса) для повторяемой и надежной подготовки и развертывания окружения self-hosted 
-inference актуальныйх нейросетевых моделей.
+This task requires tooling, scripts, environments, and instructions for repeatable and reliable preparation and deployment of a self-hosted inference system for current neural network models.
 
-## Продуктовые требования
+## Product requirements
 
-Для оператора:
+For the operator:
 
-- Я как оператор системы должен иметь возможность контролируемо и в изолированном окружении подготавливать, развертывать и запускать Систему инференса.
-- Я как оператор системы должен мочь удобным образом поддерживать и обновлять, а также расширять поддерживаемые модели и алгоритмы.
-- Я как оператор системы должен иметь возможность мониторить и ограничивать потребление ресурсов (CPU/GPU) системой инференса.
+- As the system operator, I must be able to prepare, deploy, and run the inference system in a controlled and isolated environment.
+- As the system operator, I must be able to maintain, update, and extend supported models and algorithms conveniently.
+- As the system operator, I must be able to monitor and limit inference system resource usage (CPU/GPU).
 
-Для пользователя:
+For the user:
 
-- Я как пользователь хочу иметь удобный и визуально понятный доступ к инструментам Системы - вводу промптов, просмотру результатов.
-- Я как пользователь хочу иметь возможность просматривать историю генераций по каждому алгоритму отдельно.
-- Я как пользователь хочу иметь возможность взаимодействовать с Системой с другой машины (телефона) из локальной сети.
+- As a user, I want convenient and visually clear access to system tools: prompt input and result browsing.
+- As a user, I want to browse generation history separately for each algorithm.
+- As a user, I want to interact with the system from another machine or phone on the local network.
 
-## Функциональные требования
+## Functional requirements
 
-- Система должна быть разработана с применением интерфейса ComfyUI (или аналогичного, если он лучше, удобнее, шире поддержан).
-- Система должна запускаться в Docker, или, как минимум из изолированного виртуального окружения через UV.
-- Система должна запускаться на машине с linux и GPU RTX 5090 и 128 GB RAM. В перспективе - на CPU и 64 GB RAM (другая инсталляция, другие алгоритмы)
-- В системе должны быть алгоритмы:
-    - Text-to-image generation (несколько нейросетей)
-    - Text-to-video generation (несколько нейросетей)
-    - Перенос стиля (фото_1 или видео_1 на входе, фото_2 или видео_2 на входе - перенос лица с фото_1 на фото_2 или видео_2, или стиля (движений) с видео_1 на видео_2)
-    - LLM (Gemma/Qwen/DeepSeek и другие актуальные)
-    - Иные нейросети, применимые и совместимые с UI
+- The system must use ComfyUI, or an equivalent interface if it is better, more convenient, and more broadly supported.
+- The system must run in Docker or, at minimum, from an isolated virtual environment through UV.
+- The system must run on a Linux machine with RTX 5090 GPU and 128 GB RAM. Future scope: CPU and 64 GB RAM on another installation with different algorithms.
+- The system must include algorithms for:
+  - Text-to-image generation with multiple neural networks.
+  - Text-to-video generation with multiple neural networks.
+  - Style transfer: photo_1 or video_1 as input, photo_2 or video_2 as input, face transfer from photo_1 to photo_2/video_2, or style/motion transfer from video_1 to video_2.
+  - LLMs such as Gemma/Qwen/DeepSeek and other current models.
+  - Other neural networks applicable to and compatible with the UI.
 
-## Дополнительные требования и ожидаемый результат
+## Additional requirements and expected result
 
-- Требуется провести веб-поиск и уточнить актуальное состояние, подходы и алгоритмы. Найти мануалы и рекомендации (рецепты) развертывания подобных систем.
-- Требуется разработать Систему по вышщеописанным требованиям и развернуть ее на текущей машине.
-- Уточнить у пользователя, если что-то непонятно.
-- Зафиксировать результаты исследований, скрипты подготовки и развертывания окружения и Системы.
-- Запустить Систему и убедиться, что она работает. 
-
+- Research the current state, approaches, and algorithms. Find manuals and recommended deployment recipes for similar systems.
+- Build the system according to the requirements above and deploy it on the current machine.
+- Clarify requirements with the user when needed.
+- Record research results, preparation scripts, deployment scripts, and system instructions.
+- Start the system and verify that it works.

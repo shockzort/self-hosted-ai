@@ -11,5 +11,8 @@ if [[ -n "${COMFY_MODEL_BUNDLE_ON_START:-}" ]]; then
   ./scripts/download-comfy-workflow-models.sh "${COMFY_MODEL_BUNDLE_ON_START}"
 fi
 ./scripts/preflight.sh
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/dcgm-image.sh"
+resolve_dcgm_exporter_image
 docker compose "${COMPOSE_ENV_ARGS[@]}" "${COMPOSE_GPU_FILES[@]}" up -d --build "$@"
 ./scripts/smoke-test.sh gpu

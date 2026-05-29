@@ -1,6 +1,6 @@
 # Operations
 
-## Запуск
+## Startup
 
 ```bash
 cp .env.example .env
@@ -9,24 +9,26 @@ cp .env.example .env
 ./scripts/start.sh
 ```
 
-GPU-режим использует `compose.yaml + compose.gpu.yaml`. CPU fallback использует `compose.yaml + compose.cpu.yaml`:
+GPU mode uses `compose.yaml + compose.gpu.yaml`. CPU fallback uses `compose.yaml + compose.cpu.yaml`:
 
 ```bash
 ALLOW_CPU_ONLY=1 ./scripts/preflight.sh
 ./scripts/start-cpu.sh
 ```
 
-`./scripts/start.sh` перед запуском ставит ComfyUI workflow JSON из `COMFY_WORKFLOW_BUNDLE_ON_START` (`starter` по умолчанию). Если нужно также автоматически скачивать модели на старте, задайте `COMFY_MODEL_BUNDLE_ON_START=starter` в `.env`.
+Before starting the stack, `./scripts/start.sh` installs ComfyUI workflow JSON from `COMFY_WORKFLOW_BUNDLE_ON_START` (`starter` by default). To also download models during startup, set `COMFY_MODEL_BUNDLE_ON_START=starter` in `.env`.
 
-## Переезд каталога
+If `COMFYUI_INSTALL_EXTRA_REQUIREMENTS=1`, the ComfyUI entrypoint scans `custom_nodes/*/requirements.txt` before opening the HTTP API. This is useful after installing community nodes, but the first start can be slow and depends on PyPI/GitHub. The entrypoint logs the active requirements file and caches successful installs by hash for repeated starts of the same container. To temporarily exclude a heavy node, use glob patterns in `COMFYUI_REQUIREMENTS_SKIP`, for example `COMFYUI_REQUIREMENTS_SKIP='custom_nodes/experimental-node/requirements.txt'`.
 
-Стек использует bind mount для постоянных данных. В `.env` зафиксированы:
+## Directory moves
+
+The stack uses bind mounts for persistent data. `.env` pins:
 
 - `COMPOSE_PROJECT_NAME=self-hosted-ai`
 - `SELF_HOSTED_AI_DATA_DIR=./data`
 - `SELF_HOSTED_AI_WORKFLOWS_DIR=./workflows`
 
-Скрипты запуска разворачивают относительные пути в абсолютные перед вызовом `docker compose`, поэтому новые контейнеры получают mount из текущего репозитория. При переезде:
+Startup scripts resolve relative paths to absolute paths before calling `docker compose`, so new containers mount data from the current repository path. To move the repository:
 
 ```bash
 cd /old/path/self-hosted-ai
@@ -37,17 +39,17 @@ cd /new/path/self-hosted-ai
 ./scripts/start.sh
 ```
 
-Не запускайте `docker compose down -v` или `./scripts/compose.sh down -v`, пока нужны модели, базы Open WebUI, настройки ComfyUI, Grafana и история. Старый каталог можно удалять только после проверки, что `docker inspect <container>` показывает mount из нового `SELF_HOSTED_AI_DATA_DIR`.
+Do not run `docker compose down -v` or `./scripts/compose.sh down -v` while you still need models, Open WebUI databases, ComfyUI settings, Grafana data, or generation history. Remove the old directory only after checking that `docker inspect <container>` shows mounts from the new `SELF_HOSTED_AI_DATA_DIR`.
 
 ## UI credentials
 
 Grafana:
 
 - URL: `http://<host-ip>:3001`
-- login: `GF_SECURITY_ADMIN_USER` из `.env`, по умолчанию `admin`
-- password: `GF_SECURITY_ADMIN_PASSWORD` из `.env`, по умолчанию `change-me`
+- login: `GF_SECURITY_ADMIN_USER` from `.env`, `admin` by default
+- password: `GF_SECURITY_ADMIN_PASSWORD` from `.env`, `change-me` by default
 
-Если пароль Grafana меняется после создания `data/grafana/grafana.db`, сбросьте его внутри контейнера:
+If the Grafana password changes after `data/grafana/grafana.db` already exists, reset it inside the container:
 
 ```bash
 ./scripts/compose.sh exec grafana grafana-cli admin reset-admin-password '<new-password>'
@@ -56,11 +58,11 @@ Grafana:
 Open WebUI:
 
 - URL: `http://<host-ip>:3000`
-- signup включен через `OPEN_WEBUI_ENABLE_SIGNUP=true`
-- если база пустая, первый зарегистрированный пользователь становится admin
-- последующие пользователи получают `DEFAULT_USER_ROLE`, по умолчанию `user`
+- signup is enabled through `OPEN_WEBUI_ENABLE_SIGNUP=true`
+- the first registered user becomes admin when the database is empty
+- later users receive `DEFAULT_USER_ROLE`, `user` by default
 
-Если регистрация была запрещена старой конфигурацией:
+If signup was disabled by an older configuration:
 
 ```bash
 ./scripts/open-webui-enable-signup.sh
@@ -68,43 +70,47 @@ Open WebUI:
 
 ## Grafana dashboards
 
-Dashboards provisioned from `monitoring/grafana/dashboards` into folder `Inference`:
+Dashboards are provisioned from `monitoring/grafana/dashboards` into the `Inference` folder:
 
-- `Inference Overview`: общий обзор GPU/VRAM/RAM/container CPU/container memory.
-- `GPU / DCGM Deep Dive`: температура, питание, SM/memory clocks, PCIe, tensor/DRAM activity.
+- `Inference Overview`: GPU/VRAM/RAM/container CPU/container memory overview.
+- `GPU / DCGM Deep Dive`: temperature, power, SM/memory clocks, PCIe, tensor/DRAM activity.
 - `Host & Containers`: scrape health, load, CPU throttling, OOM events, network, filesystem IO.
 
-Перегенерировать dashboard JSON:
+Regenerate dashboard JSON:
 
 ```bash
 ./scripts/generate-grafana-dashboards.py
 ./scripts/compose.sh restart grafana
 ```
 
-## Доступ из локальной сети
+The DCGM exporter image is configured in `.env` through `DCGM_EXPORTER_IMAGE` and `DCGM_EXPORTER_TAG`. By default the stack uses the Docker Hub mirror `nvidia/dcgm-exporter:4.5.2-4.8.1-distroless`. `./scripts/start.sh`, `./scripts/update-images.sh`, and `./scripts/compose.sh up|pull|create` automatically try `DCGM_EXPORTER_FALLBACK_IMAGES` when the selected registry does not provide the image.
 
-Узнайте адрес хоста:
+Tune smoke tests for slow first boots with `SMOKE_COMFY_ATTEMPTS`, `SMOKE_DELAY`, `SMOKE_CURL_TIMEOUT`, and `SMOKE_STATUS_EVERY`.
+
+## LAN access
+
+Find the host address:
 
 ```bash
 hostname -I
 ```
 
-Откройте с телефона `http://<host-ip>:8188` для ComfyUI или `http://<host-ip>:3000` для Open WebUI. Если не открывается, проверьте firewall на портах из `.env`.
+Open `http://<host-ip>:8188` for ComfyUI or `http://<host-ip>:3000` for Open WebUI from a phone or another LAN machine. If the UI does not open, check firewall rules for the ports from `.env`.
 
-## Обновление
+## Updates
 
-Обновить внешние образы и пересобрать ComfyUI:
+Update external images and rebuild ComfyUI:
 
 ```bash
 ./scripts/update-images.sh
 ./scripts/start.sh
 ```
 
-Для контролируемой версии ComfyUI задайте `COMFYUI_REF` в `.env` на tag/branch/commit и пересоберите.
+For a pinned ComfyUI version, set `COMFYUI_REF` in `.env` to a tag, branch, or commit and rebuild.
 
 ## Backup
 
-Минимальный backup:
+Minimum backup set:
 
 - `.env`
 - `data/comfyui/models`
@@ -116,12 +122,12 @@ hostname -I
 
 ## Security
 
-ComfyUI и result browser по умолчанию доступны без отдельной авторизации внутри LAN. Не публикуйте эти порты в интернет. Для многопользовательского Open WebUI оставьте `WEBUI_AUTH=true` и задайте admin password через UI или `.env`.
+ComfyUI and the result browser are available inside the LAN without separate authentication by default. Do not expose these ports to the internet. For multi-user Open WebUI, keep `WEBUI_AUTH=true` and set the admin password through the UI or `.env`.
 
 ## Resource controls
 
 - CPU/RAM: `COMFY_CPUS`, `COMFY_MEM_LIMIT`, `OLLAMA_CPUS`, `OLLAMA_MEM_LIMIT`.
-- GPU selection: `NVIDIA_VISIBLE_DEVICES=0` или `0,1`.
-- GPU count reservation: `GPU_COUNT=1` или `all`.
+- GPU selection: `NVIDIA_VISIBLE_DEVICES=0` or `0,1`.
+- GPU count reservation: `GPU_COUNT=1` or `all`.
 - Ollama parallelism: `OLLAMA_NUM_PARALLEL`, `OLLAMA_MAX_LOADED_MODELS`.
-- ComfyUI VRAM behavior: используйте FP8 модели, меньшие resolutions, native offloading и дополнительные args в `COMFYUI_EXTRA_ARGS`.
+- ComfyUI VRAM behavior: use FP8 models, lower resolutions, native offloading, and additional args in `COMFYUI_EXTRA_ARGS`.

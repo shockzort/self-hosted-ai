@@ -2,17 +2,17 @@
 
 ## LLM
 
-Стартовый набор для RTX 5090:
+Starter set for RTX 5090:
 
 ```bash
 ./scripts/pull-ollama-models.sh qwen3:14b gemma3:12b deepseek-r1:14b
 ```
 
-После загрузки откройте Open WebUI и выберите модель в dropdown. История чатов хранится в `data/open-webui`.
+After downloading, open Open WebUI and select the model in the dropdown. Chat history is stored in `data/open-webui`.
 
 ## Code agents
 
-Для OpenCode/Cline/Roo/Claude Code используйте отдельный llama.cpp backend:
+Use the separate llama.cpp backend for OpenCode/Cline/Roo/Claude Code:
 
 ```bash
 ./scripts/code-llm.sh list
@@ -20,17 +20,17 @@
 ./scripts/code-llm.sh smoke
 ```
 
-Default endpoint: `http://localhost:8080/v1`, model id: `code/gemma4-fast`, key: `local-code-llm`. Подробности и альтернативные профили: `docs/code-agents.md`.
+Default endpoint: `http://localhost:8080/v1`, model id: `code/gemma4-fast`, key: `local-code-llm`. Details and alternative profiles: `docs/code-agents.md`.
 
-Для управления через браузер:
+For browser-based management:
 
 ```bash
 ./scripts/code-llm-manager.sh start
 ```
 
-UI доступен на `http://127.0.0.1:8091`; через него можно выгружать модель, переключать профили, скачивать GGUF и добавлять новые coding profiles.
+The UI is available at `http://127.0.0.1:8091`; it can unload the model, switch profiles, download GGUF files, and add new coding profiles.
 
-Для GLM 5+ используется отдельный `ik_llama.cpp` engine:
+GLM 5+ uses a separate `ik_llama.cpp` engine:
 
 ```bash
 ./scripts/code-llm.sh build-engine ik
@@ -38,20 +38,20 @@ UI доступен на `http://127.0.0.1:8091`; через него можно
 ./scripts/code-llm.sh start glm5-extreme
 ```
 
-На RTX 5090 профиль собирается с `IK_LLAMA_CUDA_ARCHITECTURES=120`; default параллелизм сборки `16`, при необходимости меняется через `IK_LLAMA_BUILD_JOBS`.
+On RTX 5090 the profile builds with `IK_LLAMA_CUDA_ARCHITECTURES=120`; default build parallelism is `16` and can be changed with `IK_LLAMA_BUILD_JOBS`.
 
 ## Image generation
 
-Быстрый старт:
+Quick start:
 
 ```bash
 ./scripts/install-comfy-workflows.sh starter
 ./scripts/download-comfy-workflow-models.sh flux-schnell
 ```
 
-В ComfyUI откройте workflow из `local/text-to-image`. Starter-набор содержит FLUX Schnell и Qwen Image. Для истории результатов `Save Image.filename_prefix` уже патчится скриптом установки.
+In ComfyUI, open a workflow from `local/text-to-image`. The starter bundle includes FLUX Schnell and Qwen Image. `Save Image.filename_prefix` is already patched by the installer for result history.
 
-Для realistic/editorial portrait и anime/illustration:
+For realistic/editorial portraits and anime/illustration:
 
 ```bash
 ./scripts/install-comfy-workflows.sh portrait
@@ -60,7 +60,7 @@ DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh portrait
 DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh anime
 ```
 
-Эти bundles добавляют Flux2 Klein, Qwen illustration, character sheet, multi-angle reference и portrait relighting workflows.
+These bundles add Flux2 Klein, Qwen illustration, character sheet, multi-angle reference, and portrait relighting workflows.
 
 ## Image edit, style transfer, reference editing
 
@@ -70,7 +70,7 @@ DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh anime
 ./scripts/download-comfy-workflow-models.sh uso-reference
 ```
 
-Используйте Flux Kontext, Qwen Image Edit и USO reference workflows. Они покрывают image editing, style reference и subject-consistency задачи. Для face swap/identity transfer используйте только материалы с согласием субъекта; не публикуйте такие workflows в интернет.
+Use Flux Kontext, Qwen Image Edit, and USO reference workflows. They cover image editing, style reference, and subject-consistency tasks. For face swap or identity transfer, use only material with the depicted person's consent; do not publish such workflows to the internet.
 
 Optional consent-only identity workflows:
 
@@ -79,7 +79,7 @@ Optional consent-only identity workflows:
 ./scripts/install-comfy-custom-nodes.sh identity-consent
 ```
 
-Они не входят в `starter`/`full` и требуют отдельного решения о доверии к сторонним custom nodes.
+They are not included in `starter` or `full` and require a separate trust decision for third-party custom nodes.
 
 ## Video generation
 
@@ -87,9 +87,9 @@ Optional consent-only identity workflows:
 ./scripts/download-comfy-workflow-models.sh wan22-5b
 ```
 
-В ComfyUI откройте `local/text-to-video/video_wan2_2_5B_ti2v.json`. Начните с небольшого resolution/length, затем увеличивайте под мониторингом GPU memory. Для RTX 5090 можно пробовать 14B workflows из full-набора после проверки 5B.
+In ComfyUI, open `local/text-to-video/video_wan2_2_5B_ti2v.json`. Start with a small resolution/length, then increase it while monitoring GPU memory. On RTX 5090, try 14B workflows from the full bundle after validating 5B.
 
-Для character/motion/video-restyle экспериментов:
+For character/motion/video-restyle experiments:
 
 ```bash
 ./scripts/install-comfy-workflows.sh video-advanced
@@ -97,13 +97,13 @@ DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh video-advanced
 ./scripts/install-comfy-custom-nodes.sh video-advanced
 ```
 
-`video-advanced` также содержит локальный `wan22-remix-t2v-dynamic` workflow: Wan2.2 Remix-style T2V preset для динамичных коротких видео. Для него нужны дополнительные custom nodes:
+`video-advanced` also includes the local `wan22-remix-t2v-dynamic` workflow: a Wan2.2 Remix-style T2V preset for dynamic short videos. It needs additional custom nodes:
 
 ```bash
 ./scripts/install-comfy-custom-nodes.sh wan-remix
 ```
 
-Для `templates_shane_video_restyle` можно поставить только профиль его зависимостей:
+For `templates_shane_video_restyle`, install only its dependency profile:
 
 ```bash
 ./scripts/install-comfy-custom-nodes.sh video-restyle
@@ -116,9 +116,9 @@ DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh video-advanced
 ./scripts/download-comfy-workflow-models.sh ace-step-song
 ```
 
-В ComfyUI откройте ACE-Step template. Для text-to-audio задаются `tags` и `lyrics`; для audio-to-audio загрузите исходный audio в `LoadAudio` и регулируйте `denoise`.
+In ComfyUI, open the ACE-Step template. For text-to-audio, set `tags` and `lyrics`; for audio-to-audio, load the source audio into `LoadAudio` and tune `denoise`.
 
-Для ACE-Step 1.5 Turbo и stem separation:
+For ACE-Step 1.5 Turbo and stem separation:
 
 ```bash
 ./scripts/install-comfy-workflows.sh audio
@@ -127,7 +127,7 @@ DRY_RUN=1 ./scripts/download-comfy-workflow-models.sh audio
 
 ## Custom nodes
 
-Ставьте custom nodes через ComfyUI Manager в интерфейсе или вручную в `data/comfyui/custom_nodes`. После установки зависимостей перезапустите `comfyui`:
+Install custom nodes through ComfyUI Manager in the UI or manually into `data/comfyui/custom_nodes`. After dependency installation, restart `comfyui`:
 
 ```bash
 ./scripts/compose.sh restart comfyui

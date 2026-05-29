@@ -2,14 +2,14 @@
 
 ## Missing `sageattention`
 
-Если Wan/KJNodes workflow падает с `No module named 'sageattention'`, проверьте `.env`:
+If a Wan/KJNodes workflow fails with `No module named 'sageattention'`, check `.env`:
 
 ```bash
 COMFYUI_INSTALL_EXTRA_REQUIREMENTS=1
 COMFYUI_EXTRA_PIP_PACKAGES=sageattention
 ```
 
-Затем пересоберите/пересоздайте ComfyUI:
+Then rebuild and recreate ComfyUI:
 
 ```bash
 ./scripts/compose.sh up -d --build --force-recreate comfyui
@@ -17,14 +17,14 @@ COMFYUI_EXTRA_PIP_PACKAGES=sageattention
 
 ## `nvidia-smi` failed
 
-GPU-режим не заработает, пока host driver не отвечает. Проверьте:
+GPU mode cannot work until the host driver responds. Check:
 
 ```bash
 nvidia-smi
 sudo systemctl status nvidia-persistenced
 ```
 
-После исправления драйвера поставьте NVIDIA Container Toolkit и выполните:
+After fixing the driver, install NVIDIA Container Toolkit and run:
 
 ```bash
 sudo ./scripts/install-nvidia-container-toolkit.sh
@@ -32,7 +32,7 @@ sudo ./scripts/install-nvidia-container-toolkit.sh
 
 ## Docker permission denied
 
-Если `docker info` пишет permission denied к `/var/run/docker.sock`, добавьте пользователя в группу `docker` и перелогиньтесь:
+If `docker info` reports permission denied for `/var/run/docker.sock`, add the user to the `docker` group and log in again:
 
 ```bash
 sudo usermod -aG docker "$USER"
@@ -40,31 +40,60 @@ newgrp docker
 docker info
 ```
 
-Либо используйте rootless Docker/sudo согласно вашей политике доступа.
+Alternatively, use rootless Docker or sudo according to your access policy.
 
 ## Hugging Face 401/403
 
-Для gated моделей:
+For gated models:
 
-1. Откройте страницу модели в Hugging Face.
-2. Примите лицензию.
-3. Создайте token.
-4. Запишите `HF_TOKEN=...` в `.env`.
-5. Повторите `./scripts/download-comfy-models.sh <preset>`.
+1. Open the model page on Hugging Face.
+2. Accept the license.
+3. Create a token.
+4. Write `HF_TOKEN=...` to `.env`.
+5. Repeat `./scripts/download-comfy-models.sh <preset>`.
 
 ## Out of memory
 
-Снизьте resolution, frames, batch size, используйте FP8 веса, включайте offloading, уменьшите `OLLAMA_NUM_PARALLEL` и `OLLAMA_MAX_LOADED_MODELS`. Для ComfyUI можно добавить low-vram args в `COMFYUI_EXTRA_ARGS`.
+Lower resolution, frame count, and batch size. Use FP8 weights, enable offloading, and reduce `OLLAMA_NUM_PARALLEL` and `OLLAMA_MAX_LOADED_MODELS`. For ComfyUI, add low-vram args to `COMFYUI_EXTRA_ARGS`.
 
-## Телефон не открывает UI
+## Phone cannot open the UI
 
-Проверьте, что телефон в той же сети, используйте IP хоста вместо `localhost`, и откройте firewall ports из `.env`.
+Check that the phone is on the same network, use the host IP instead of `localhost`, and open the firewall ports from `.env`.
 
-## Grafana не показывает GPU
+## Grafana does not show GPU data
 
-В CPU-режиме DCGM exporter не запускается. В GPU-режиме проверьте:
+DCGM exporter does not run in CPU mode. In GPU mode, check:
 
 ```bash
 ./scripts/compose.sh ps dcgm-exporter
 curl http://localhost:9400/metrics
+```
+
+## DCGM exporter pull fails with `Incorrect Repository Format`
+
+On some Docker/registry combinations, pulls from `nvcr.io/nvidia/k8s/dcgm-exporter` can download layers and then fail with `error from registry: Incorrect Repository Format`. Use the Docker Hub mirror:
+
+```bash
+DCGM_EXPORTER_IMAGE=nvidia/dcgm-exporter
+DCGM_EXPORTER_TAG=4.5.2-4.8.1-distroless
+```
+
+By default, `./scripts/start.sh` and `./scripts/update-images.sh` already try fallback images from `DCGM_EXPORTER_FALLBACK_IMAGES`.
+
+## ComfyUI does not pass smoke-test for a long time
+
+If `./scripts/start.sh` waits for `ComfyUI is reachable` for a long time, check:
+
+```bash
+docker logs --tail 120 self-hosted-ai-comfyui-1
+```
+
+A common cause is `COMFYUI_INSTALL_EXTRA_REQUIREMENTS=1` with community nodes already installed in `data/comfyui/custom_nodes`. In this mode the entrypoint installs every node's `requirements.txt` before starting the HTTP API. Heavy nodes can download large wheels or build packages from source.
+
+Options:
+
+```bash
+COMFYUI_INSTALL_EXTRA_REQUIREMENTS=0 ./scripts/start.sh
+COMFYUI_REQUIREMENTS_SKIP='custom_nodes/problem-node/requirements.txt' ./scripts/start.sh
+SMOKE_COMFY_ATTEMPTS=600 ./scripts/start.sh
 ```

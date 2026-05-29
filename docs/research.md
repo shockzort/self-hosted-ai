@@ -1,48 +1,48 @@
 # Research notes
 
-Дата исследования: 2026-05-10.
+Research date: 2026-05-10.
 
-Дополнение по локальным кодовым агентам: 2026-05-16.
+Local coding agent addendum: 2026-05-16.
 
-## Выбранная архитектура
+## Selected architecture
 
-Базовый UI выбран как ComfyUI: он поддерживает graph/node workflows и официальные template workflows для image, video и audio. Для LLM выбран отдельный контур Ollama + Open WebUI, потому что Ollama официально запускается в Docker на Linux с NVIDIA GPU, а Open WebUI дает браузерный интерфейс, историю чатов и доступ из LAN.
+The base UI is ComfyUI because it supports graph/node workflows and official template workflows for image, video, and audio. The LLM path uses a separate Ollama + Open WebUI stack because Ollama officially runs in Docker on Linux with NVIDIA GPU support, and Open WebUI provides a browser UI, chat history, and LAN access.
 
-## Инфраструктурные выводы
+## Infrastructure findings
 
-- ComfyUI docs рекомендуют для NVIDIA актуальный PyTorch CUDA 13.0 (`cu130`) и отмечают, что Python 3.13 хорошо поддержан, а Python 3.12 остается хорошим fallback для custom nodes: https://docs.comfy.org/installation/system_requirements
-- Docker Compose GPU доступ задается через `deploy.resources.reservations.devices`, где `capabilities: [gpu]` обязателен, а `count` и `device_ids` взаимоисключающие: https://docs.docker.com/compose/how-tos/gpu-support/
-- NVIDIA Container Toolkit требует установленного NVIDIA driver, затем `nvidia-ctk runtime configure --runtime=docker` и перезапуск Docker: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.17.8/install-guide.html
-- Ollama официально поддерживает Docker на Linux с NVIDIA GPU через `--gpus=all`: https://docs.ollama.com/docker
-- Open WebUI работает как self-hosted web UI, поддерживает Ollama/OpenAI-compatible APIs и Docker quick start: https://docs.openwebui.com/
+- ComfyUI docs recommend current PyTorch CUDA 13.0 (`cu130`) for NVIDIA and state that Python 3.13 is well supported, while Python 3.12 remains a good fallback for custom nodes: https://docs.comfy.org/installation/system_requirements
+- Docker Compose GPU access is configured through `deploy.resources.reservations.devices`, where `capabilities: [gpu]` is required and `count` and `device_ids` are mutually exclusive: https://docs.docker.com/compose/how-tos/gpu-support/
+- NVIDIA Container Toolkit requires an installed NVIDIA driver, then `nvidia-ctk runtime configure --runtime=docker` and a Docker restart: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.17.8/install-guide.html
+- Ollama officially supports Docker on Linux with NVIDIA GPU through `--gpus=all`: https://docs.ollama.com/docker
+- Open WebUI works as a self-hosted web UI, supports Ollama/OpenAI-compatible APIs, and provides a Docker quick start: https://docs.openwebui.com/
 
-## Модели и workflows
+## Models and workflows
 
-- Официальный репозиторий ComfyUI workflow templates содержит JSON workflows для Flux, Qwen Image, Wan2.2, ACE-Step и других пайплайнов; `scripts/install-comfy-workflows.sh` ставит отобранные workflows из него: https://github.com/Comfy-Org/workflow_templates
-- Reddit-поиск по r/comfyui показал практический спрос на Wan2.2 production/video workflows, character consistency, Flux/Qwen reference editing, ACE-Step 1.5, audio mastering/stem separation, Music Tools и consent-only identity transfer workflows. В manifests добавлены только workflows/custom nodes с публичным JSON/source URL; workflows, целенаправленно заточенные под explicit sexual content, не добавлялись.
-- Text-to-image: ComfyUI Flux.1 guide описывает Flux.1 Dev/Schnell, FP8 варианты и места размещения `clip_l`, `t5xxl`, `ae` и diffusion models: https://docs.comfy.org/tutorials/flux/flux-1-text-to-image
-- Image edit/style transfer: Flux.1 Kontext Dev поддержан native workflow в ComfyUI; guide указывает `flux1-dev-kontext_fp8_scaled.safetensors`, `clip_l`, `t5xxl` и `ae`: https://docs.comfy.org/tutorials/flux/flux-1-kontext-dev
-- Reference/style workflows: Flux.1 USO guide описывает subject/style reference сценарии с USO LoRA, projector и SigCLIP vision model: https://docs.comfy.org/tutorials/flux/flux-1-uso
-- Text/image-to-video: Wan2.2 official workflow включает 5B hybrid model, который должен помещаться примерно в 8GB VRAM с ComfyUI native offloading, и 14B T2V/I2V варианты для более тяжелого запуска: https://docs.comfy.org/tutorials/video/wan/wan2_2
-- Audio/music: ACE-Step native example описывает text-to-audio и audio-to-audio workflows, `ace_step_v1_3.5b.safetensors`, tags/lyrics prompts и Apache-2.0 лицензию проекта: https://docs.comfy.org/tutorials/audio/ace-step/ace-step-v1
-- ACE-Step 1.5 docs описывают AIO/split workflows, turbo model, 50+ language support and RTX 5090 performance expectations: https://docs.comfy.org/tutorials/audio/ace-step/ace-step-v1-5
-- Stable Audio Open 1.0 остается полезным open text-to-audio вариантом, но модель требует принятия условий и имеет Stability AI Community License: https://huggingface.co/stabilityai/stable-audio-open-1.0
+- The official ComfyUI workflow templates repository contains JSON workflows for Flux, Qwen Image, Wan2.2, ACE-Step, and other pipelines. `scripts/install-comfy-workflows.sh` installs selected workflows from it: https://github.com/Comfy-Org/workflow_templates
+- Reddit research on r/comfyui showed practical demand for Wan2.2 production/video workflows, character consistency, Flux/Qwen reference editing, ACE-Step 1.5, audio mastering/stem separation, Music Tools, and consent-only identity-transfer workflows. The manifests include only workflows/custom nodes with public JSON/source URLs. Workflows intentionally built for explicit sexual content were not added.
+- Text-to-image: the ComfyUI Flux.1 guide documents Flux.1 Dev/Schnell, FP8 variants, and placement paths for `clip_l`, `t5xxl`, `ae`, and diffusion models: https://docs.comfy.org/tutorials/flux/flux-1-text-to-image
+- Image edit/style transfer: Flux.1 Kontext Dev is supported by a native ComfyUI workflow. The guide specifies `flux1-dev-kontext_fp8_scaled.safetensors`, `clip_l`, `t5xxl`, and `ae`: https://docs.comfy.org/tutorials/flux/flux-1-kontext-dev
+- Reference/style workflows: the Flux.1 USO guide documents subject/style reference scenarios with USO LoRA, projector, and SigCLIP vision model: https://docs.comfy.org/tutorials/flux/flux-1-uso
+- Text/image-to-video: the official Wan2.2 workflow includes a 5B hybrid model expected to fit in roughly 8 GB VRAM with ComfyUI native offloading, plus 14B T2V/I2V variants for heavier runs: https://docs.comfy.org/tutorials/video/wan/wan2_2
+- Audio/music: the ACE-Step native example documents text-to-audio and audio-to-audio workflows, `ace_step_v1_3.5b.safetensors`, tags/lyrics prompts, and the project's Apache-2.0 license: https://docs.comfy.org/tutorials/audio/ace-step/ace-step-v1
+- ACE-Step 1.5 docs describe AIO/split workflows, the turbo model, 50+ language support, and RTX 5090 performance expectations: https://docs.comfy.org/tutorials/audio/ace-step/ace-step-v1-5
+- Stable Audio Open 1.0 remains a useful open text-to-audio option, but the model requires terms acceptance and uses the Stability AI Community License: https://huggingface.co/stabilityai/stable-audio-open-1.0
 
-## Мониторинг
+## Monitoring
 
-- cAdvisor экспортирует Docker container metrics в Prometheus-compatible формате: https://prometheus.io/docs/guides/cadvisor/
-- NVIDIA DCGM Exporter предоставляет GPU metrics через `/metrics` для Prometheus: https://docs.nvidia.com/datacenter/dcgm/latest/gpu-telemetry/dcgm-exporter.html
+- cAdvisor exports Docker container metrics in a Prometheus-compatible format: https://prometheus.io/docs/guides/cadvisor/
+- NVIDIA DCGM Exporter exposes GPU metrics through `/metrics` for Prometheus: https://docs.nvidia.com/datacenter/dcgm/latest/gpu-telemetry/dcgm-exporter.html
 
-## Практический вывод
+## Practical conclusion
 
-Для RTX 5090/128GB RAM разумный стартовый набор: Flux Schnell/Dev FP8 для image, Flux Kontext для editing/style workflows, Wan2.2 5B для первого video workflow, ACE-Step v1 для audio/music, и Ollama модели уровня `qwen3:14b`, `gemma3:12b`, `deepseek-r1:14b`. Более тяжелые 14B video workflows и LLM 30B+ стоит включать после проверки VRAM и температуры под мониторингом.
+For RTX 5090/128 GB RAM, a reasonable starter set is Flux Schnell/Dev FP8 for images, Flux Kontext for editing/style workflows, Wan2.2 5B for the first video workflow, ACE-Step v1 for audio/music, and Ollama models such as `qwen3:14b`, `gemma3:12b`, and `deepseek-r1:14b`. Enable heavier 14B video workflows and 30B+ LLMs after checking VRAM and temperature under monitoring.
 
-## Локальные кодовые агенты
+## Local coding agents
 
-- Для OpenCode/Cline/Roo Code и похожих клиентов нужен OpenAI-compatible `/v1/chat/completions` backend; Claude Code дополнительно требует gateway с Anthropic Messages `/v1/messages`: https://code.claude.com/docs/en/llm-gateway
-- llama.cpp `llama-server` предоставляет OpenAI-compatible endpoints, web UI, metrics и function/tool calling; для tool calling нужен `--jinja`: https://www.mintlify.com/ggml-org/llama.cpp/inference/server и https://www.mintlify.com/ggml-org/llama.cpp/advanced/function-calling
-- Habr-тест от 2026-05-11 сравнил Gemma 4 26B-A4B, Qwen 3.6 35B-A3B и Qwen3-Coder 30B-A3B на агентских coding задачах и показал, что fast-режим Gemma 4 лучше всего следовал проектным правилам; использованные параметры перенесены в `config/code-llm-models.tsv`: https://habr.com/ru/articles/1033808/
-- GLM 5+ добавлен как отдельный тяжелый профиль `glm5-extreme` на базе GLM-5.1 1.673 bpw GGUF: https://huggingface.co/sokann/GLM-5.1-GGUF-1.673bpw. Карточка модели указывает 128 GiB system RAM + 24 GiB VRAM, размер 146.840 GiB и рекомендуемые флаги для 88064 context. Для ориентира по другим GLM-5.1 GGUF сборкам использован reference set: https://huggingface.co/bartowski/zai-org_GLM-5.1-GGUF
-- Для GLM-5.1 mainline `llama.cpp:server-cuda` недостаточен: в проверенном образе нет `-mla`, `-khad`, `-mqkv`, `-muge`, `-wgt`. Поэтому добавлен локальный `ik_llama.cpp` engine. На RTX 5090 он собирается с `IK_LLAMA_CUDA_ARCHITECTURES=120`; `IK_LLAMA_DEFAULT_BUILD_JOBS=16` выбран после проверки, потому что `-j32` ронял `nvcc`, а `-j8` избыточно консервативен для этой машины.
-- Для Open WebUI внешний OpenAI-compatible backend задается через `OPENAI_API_BASE_URLS` и `OPENAI_API_KEYS`; из-за PersistentConfig уже запущенную базу иногда нужно поправить в Admin Settings -> Connections: https://docs.openwebui.com/reference/env-configuration/
-- OpenCode поддерживает кастомного OpenAI-compatible провайдера через `@ai-sdk/openai-compatible` и `options.baseURL`; пример лежит в `config/code-agents/opencode.json`: https://opencode.ai/docs/providers
+- OpenCode/Cline/Roo Code and similar clients need an OpenAI-compatible `/v1/chat/completions` backend. Claude Code additionally requires a gateway with Anthropic Messages `/v1/messages`: https://code.claude.com/docs/en/llm-gateway
+- llama.cpp `llama-server` provides OpenAI-compatible endpoints, a web UI, metrics, and function/tool calling. Tool calling requires `--jinja`: https://www.mintlify.com/ggml-org/llama.cpp/inference/server and https://www.mintlify.com/ggml-org/llama.cpp/advanced/function-calling
+- The 2026-05-11 Habr test compared Gemma 4 26B-A4B, Qwen 3.6 35B-A3B, and Qwen3-Coder 30B-A3B on agentic coding tasks and found that Gemma 4 fast mode followed project rules best. The tested parameters were transferred to `config/code-llm-models.tsv`: https://habr.com/ru/articles/1033808/
+- GLM 5+ was added as a separate heavy `glm5-extreme` profile based on GLM-5.1 1.673 bpw GGUF: https://huggingface.co/sokann/GLM-5.1-GGUF-1.673bpw. The model card states 128 GiB system RAM + 24 GiB VRAM, 146.840 GiB size, and recommended flags for 88064 context. The reference set for other GLM-5.1 GGUF builds is https://huggingface.co/bartowski/zai-org_GLM-5.1-GGUF
+- Mainline `llama.cpp:server-cuda` is insufficient for GLM-5.1: the verified image does not include `-mla`, `-khad`, `-mqkv`, `-muge`, and `-wgt`. A local `ik_llama.cpp` engine was added for that reason. On RTX 5090 it builds with `IK_LLAMA_CUDA_ARCHITECTURES=120`; `IK_LLAMA_DEFAULT_BUILD_JOBS=16` was selected after verification because `-j32` crashed `nvcc`, while `-j8` was overly conservative for this machine.
+- Open WebUI external OpenAI-compatible backends are configured through `OPENAI_API_BASE_URLS` and `OPENAI_API_KEYS`. With PersistentConfig, an already initialized database can require a manual update in Admin Settings -> Connections: https://docs.openwebui.com/reference/env-configuration/
+- OpenCode supports a custom OpenAI-compatible provider through `@ai-sdk/openai-compatible` and `options.baseURL`. An example is in `config/code-agents/opencode.json`: https://opencode.ai/docs/providers

@@ -1,14 +1,14 @@
 # Self-hosted image/video/audio inference
 
-Этот репозиторий содержит повторяемый Docker-стек для локального инференса:
+This repository provides a repeatable Docker stack for local inference:
 
-- ComfyUI для image/video/audio workflows.
-- Ollama + Open WebUI для локальных LLM.
-- Отдельный llama.cpp server для локальных кодовых агентов через OpenAI-compatible API.
-- Prometheus, Grafana, cAdvisor, node-exporter и NVIDIA DCGM exporter для мониторинга CPU/RAM/GPU.
-- Result browser для просмотра истории генераций из локальной сети.
+- ComfyUI for image, video, and audio workflows.
+- Ollama + Open WebUI for local LLMs.
+- A separate llama.cpp server for local coding agents through an OpenAI-compatible API.
+- Prometheus, Grafana, cAdvisor, node-exporter, and NVIDIA DCGM exporter for CPU/RAM/GPU monitoring.
+- A result browser for generation history on the local network.
 
-## Быстрый старт
+## Quick start
 
 ```bash
 cp .env.example .env
@@ -17,59 +17,61 @@ cp .env.example .env
 ./scripts/start.sh
 ```
 
-Если GPU-драйвер временно недоступен, можно поднять CPU-режим:
+If the GPU driver is temporarily unavailable, start the CPU profile:
 
 ```bash
 ALLOW_CPU_ONLY=1 ./scripts/preflight.sh
 ./scripts/start-cpu.sh
 ```
 
-После запуска:
+After startup:
 
-| Сервис | URL |
+| Service | URL |
 | --- | --- |
 | ComfyUI | `http://localhost:8188` |
 | Open WebUI | `http://localhost:3000` |
-| Code LLM API | `http://localhost:8080/v1` |
 | Results browser | `http://localhost:8090` |
 | Grafana | `http://localhost:3001` |
 | Prometheus | `http://localhost:9090` |
 | cAdvisor | `http://localhost:8089` |
 | Ollama API | `http://localhost:11434` |
 
-Для телефона или другой машины в LAN используйте IP хоста, например `http://192.168.1.20:8188`.
+For a phone or another machine on the LAN, use the host IP, for example `http://192.168.1.20:8188`.
 
-Grafana credentials берутся из `.env`: по умолчанию `admin` / `change-me`.
-Open WebUI signup включен по умолчанию; первый зарегистрированный пользователь становится администратором на пустой базе.
+Grafana credentials come from `.env`: `admin` / `change-me` by default.
+Open WebUI signup is enabled by default; the first registered user becomes administrator on an empty database.
+For GPU monitoring, DCGM exporter uses Docker Hub (`nvidia/dcgm-exporter`) by default. Startup scripts can try fallback images from `DCGM_EXPORTER_FALLBACK_IMAGES` when the selected registry is unavailable or rejects the image.
 
-Постоянные данные лежат в `SELF_HOSTED_AI_DATA_DIR` из `.env` (`./data` по умолчанию), а Docker Compose проект явно называется `self-hosted-ai`. Для ручных compose-команд используйте `./scripts/compose.sh ...`: он всегда подставляет правильный project name, compose-файлы и пути. Если репозиторий переехал в другой каталог, остановите старый проект командой `./scripts/compose.sh down` без `-v`, перенесите/проверьте `data`, затем запускайте `./scripts/start.sh` из нового каталога.
+Persistent data is stored in `SELF_HOSTED_AI_DATA_DIR` from `.env` (`./data` by default), and the Docker Compose project name is fixed to `self-hosted-ai`. For manual compose commands, use `./scripts/compose.sh ...`: it always injects the correct project name, compose files, and paths. If the repository moves to another directory, stop the old project with `./scripts/compose.sh down` without `-v`, move or verify `data`, then run `./scripts/start.sh` from the new directory.
 
-## Модели
+## Models
 
-Загрузить LLM в Ollama:
+Pull LLMs into Ollama:
 
 ```bash
 ./scripts/pull-ollama-models.sh
-# или явно
+# or explicitly
 ./scripts/pull-ollama-models.sh qwen3:14b gemma3:12b deepseek-r1:14b
 ```
 
-Поднять отдельный llama.cpp API для OpenCode/Cline/Roo/Claude Code:
+Start the separate llama.cpp API for OpenCode/Cline/Roo/Claude Code:
 
 ```bash
 ./scripts/code-llm.sh list
 ./scripts/code-llm.sh start gemma4-fast
 ```
 
-Локальный GUI для управления coding моделями:
+After the separate Code LLM startup, the API is available at `http://localhost:8080/v1`.
+
+Local GUI for coding model management:
 
 ```bash
 ./scripts/code-llm-manager.sh start
 ```
 
-Он открывается на `http://127.0.0.1:8091` и умеет показывать RAM/VRAM/disk, текущий профиль, скачивать GGUF, выгружать модель, переключать профили и добавлять новые записи в `config/code-llm-models.tsv`.
+It runs at `http://127.0.0.1:8091` and shows RAM/VRAM/disk usage, the active profile, GGUF downloads, model unloads, profile switching, and new entries for `config/code-llm-models.tsv`.
 
-Профили Gemma 4 / Qwen 3.6 / Qwen3-Coder / GLM 5+ и клиентские конфиги описаны в `docs/code-agents.md`. Тяжелый GLM профиль требует отдельной сборки engine и явной загрузки модели:
+Gemma 4 / Qwen 3.6 / Qwen3-Coder / GLM 5+ profiles and client configs are documented in `docs/code-agents.md`. The heavy GLM profile requires a separate engine build and an explicit model download:
 
 ```bash
 ./scripts/code-llm.sh build-engine ik
@@ -77,7 +79,7 @@ Open WebUI signup включен по умолчанию; первый заре�
 ./scripts/code-llm.sh start glm5-extreme
 ```
 
-Посмотреть и загрузить ComfyUI-пресеты:
+List and download ComfyUI presets:
 
 ```bash
 ./scripts/download-comfy-models.sh list
@@ -86,9 +88,9 @@ Open WebUI signup включен по умолчанию; первый заре�
 ./scripts/download-comfy-models.sh ace-step-v1
 ```
 
-Для gated Hugging Face моделей сначала примите лицензию на странице модели и добавьте `HF_TOKEN` в `.env`.
+For gated Hugging Face models, accept the model license first and add `HF_TOKEN` to `.env`.
 
-Готовые ComfyUI workflows ставятся автоматически при `./scripts/start.sh` из `COMFY_WORKFLOW_BUNDLE_ON_START`. Управлять ими можно явно:
+Ready-to-use ComfyUI workflows are installed automatically during `./scripts/start.sh` from `COMFY_WORKFLOW_BUNDLE_ON_START`. Manage them explicitly with:
 
 ```bash
 ./scripts/install-comfy-workflows.sh list
@@ -106,12 +108,14 @@ Optional community nodes:
 ./scripts/install-comfy-custom-nodes.sh video-advanced
 ```
 
-## История результатов
+If `data/comfyui/custom_nodes` already contains community nodes and `COMFYUI_INSTALL_EXTRA_REQUIREMENTS=1`, the first ComfyUI start can take several minutes: the entrypoint installs those nodes' `requirements.txt` files before opening the HTTP API. Use `COMFYUI_REQUIREMENTS_SKIP` to temporarily skip problematic nodes. Repeated starts of the same container skip unchanged requirements through a hash cache.
 
-ComfyUI пишет результаты в `data/comfyui/output`. Для раздельной истории по алгоритмам задавайте `filename_prefix` в `Save Image/Video/Audio` nodes, например `text-to-image/flux` или `text-to-video/wan22`. Готовые префиксы описаны в `config/output-prefixes.md`.
+## Result history
 
-## Ресурсные лимиты
+ComfyUI writes results to `data/comfyui/output`. For per-algorithm history, set `filename_prefix` in `Save Image/Video/Audio` nodes, for example `text-to-image/flux` or `text-to-video/wan22`. Ready prefixes are listed in `config/output-prefixes.md`.
 
-CPU/RAM лимиты задаются в `.env`: `COMFY_CPUS`, `COMFY_MEM_LIMIT`, `OLLAMA_CPUS`, `OLLAMA_MEM_LIMIT`. GPU выбирается через `NVIDIA_VISIBLE_DEVICES` и `GPU_COUNT`. Жестко ограничить VRAM средствами Docker нельзя, поэтому для VRAM используйте выбор модели, FP8/quantized веса, ComfyUI offloading/low-vram режимы и параметры параллелизма Ollama.
+## Resource limits
 
-Подробности: `docs/comfyui-usage.md`, `docs/operations.md`, `docs/model-recipes.md`, `docs/research.md`, `docs/troubleshooting.md`.
+CPU/RAM limits are configured in `.env`: `COMFY_CPUS`, `COMFY_MEM_LIMIT`, `OLLAMA_CPUS`, `OLLAMA_MEM_LIMIT`. GPU selection uses `NVIDIA_VISIBLE_DEVICES` and `GPU_COUNT`. Docker cannot strictly cap VRAM, so control VRAM through model choice, FP8/quantized weights, ComfyUI offloading/low-vram mode, and Ollama parallelism settings.
+
+Details: `docs/comfyui-usage.md`, `docs/operations.md`, `docs/model-recipes.md`, `docs/research.md`, `docs/troubleshooting.md`.

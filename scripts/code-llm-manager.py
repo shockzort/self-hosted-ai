@@ -576,7 +576,7 @@ HTML = r"""<!doctype html>
   <header>
     <div>
       <h1>Code LLM Manager</h1>
-      <div class="muted" id="subtitle">Загрузка состояния...</div>
+      <div class="muted" id="subtitle">Loading state...</div>
     </div>
     <div class="toolbar">
       <button onclick="refresh()">Refresh</button>

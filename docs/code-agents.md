@@ -1,16 +1,16 @@
 # Local Code Agents
 
-Дата исследования: 2026-05-16.
+Research date: 2026-05-16.
 
-## Вывод
+## Conclusion
 
-Для локального AI-assisted программирования лучше держать отдельный `llama.cpp` server рядом с существующим Ollama/Open WebUI стеком. Причина практическая: агентам нужны OpenAI-compatible `/v1/chat/completions`, стабильный tool calling и точный контроль `--jinja`, KV-cache, Flash Attention и MoE offload. Ollama удобен как универсальная витрина моделей, но `llama-server` дает больше управляемости для кодовых агентов.
+Local AI-assisted coding should use a separate `llama.cpp` server next to the existing Ollama/Open WebUI stack. Coding agents need OpenAI-compatible `/v1/chat/completions`, stable tool calling, and precise control over `--jinja`, KV cache, Flash Attention, and MoE offload. Ollama is convenient as a general model front door, but `llama-server` provides more control for coding agents.
 
-## Источники
+## Sources
 
-- Habr-тест Gemma 4 / Qwen 3.6 / Qwen Coder: https://habr.com/ru/articles/1033808/
+- Habr test for Gemma 4 / Qwen 3.6 / Qwen Coder: https://habr.com/ru/articles/1033808/
 - llama.cpp server docs: https://www.mintlify.com/ggml-org/llama.cpp/inference/server
-- llama.cpp function calling через `--jinja`: https://www.mintlify.com/ggml-org/llama.cpp/advanced/function-calling
+- llama.cpp function calling through `--jinja`: https://www.mintlify.com/ggml-org/llama.cpp/advanced/function-calling
 - Gemma 4 MXFP4 GGUF: https://huggingface.co/noctrex/gemma-4-26B-A4B-it-MXFP4_MOE-GGUF
 - Qwen3.6 GGUF: https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF
 - GLM-5.1 1.673 bpw GGUF: https://huggingface.co/sokann/GLM-5.1-GGUF-1.673bpw
@@ -20,32 +20,32 @@
 - Cline OpenAI-compatible provider: https://docs.cline.bot/provider-config/openai-compatible
 - Claude Code LLM gateway requirements: https://code.claude.com/docs/en/llm-gateway
 
-## Модельные профили
+## Model profiles
 
-Профили лежат в `config/code-llm-models.tsv` и применяются через:
+Profiles live in `config/code-llm-models.tsv` and are applied with:
 
 ```bash
 ./scripts/code-llm.sh list
 ./scripts/code-llm.sh start gemma4-fast
 ```
 
-Основной профиль: `gemma4-fast`. Он повторяет практический вывод из статьи: для кодовых агентских задач fast-режим лучше следует буквальным правилам проекта, а `--jinja` обязателен для tool calling.
+Primary profile: `gemma4-fast`. It follows the practical result from the article: for coding-agent tasks, fast mode follows literal project rules better, and `--jinja` is required for tool calling.
 
-Доступные профили:
+Available profiles:
 
-- `gemma4-fast`: Gemma 4 26B-A4B IT MXFP4 MoE, default для RTX 5090 / 24-32 GB VRAM.
-- `gemma4-thinking`: тот же backend, но reasoning включен.
-- `qwen36-fast`: Qwen3.6 35B-A3B с `--reasoning off` и `--reasoning-budget 0`.
-- `qwen36-thinking`: Qwen3.6 с reasoning.
+- `gemma4-fast`: Gemma 4 26B-A4B IT MXFP4 MoE, default for RTX 5090 / 24-32 GB VRAM.
+- `gemma4-thinking`: same backend with reasoning enabled.
+- `qwen36-fast`: Qwen3.6 35B-A3B with `--reasoning off` and `--reasoning-budget 0`.
+- `qwen36-thinking`: Qwen3.6 with reasoning.
 - `qwen3-coder-fast`: Qwen3-Coder 30B-A3B Instruct Q4_K_M.
-- `qwen3-coder-thinking`: Qwen3-Coder с reasoning.
-- `glm5-extreme`: GLM-5.1 1.673 bpw GGUF, свежий GLM 5+ профиль, который заявлен под 128 GiB RAM и 24+ GiB VRAM. Это не default, потому что модель занимает 146.840 GiB, почти весь host RAM и требует отдельного `ik_llama.cpp` engine.
+- `qwen3-coder-thinking`: Qwen3-Coder with reasoning.
+- `glm5-extreme`: GLM-5.1 1.673 bpw GGUF, a current GLM 5+ profile declared for 128 GiB RAM and 24+ GiB VRAM. It is not the default because the model is 146.840 GiB, uses nearly all host RAM, and requires a separate `ik_llama.cpp` engine.
 
-Для GLM-5.1 выбран `sokann/GLM-5.1-GGUF-1.673bpw`: карточка модели указывает 128 GiB system RAM + 24 GiB VRAM, размер 146.840 GiB и рекомендуемые флаги для 88064 context. Более качественные GLM-5.1 GGUF варианты остаются крупнее практического лимита этой машины.
+GLM-5.1 uses `sokann/GLM-5.1-GGUF-1.673bpw`: the model card states 128 GiB system RAM + 24 GiB VRAM, 146.840 GiB size, and recommended flags for 88064 context. Higher-quality GLM-5.1 GGUF variants remain above the practical limit for this machine.
 
-## Загрузка моделей
+## Model downloads
 
-Профили могут скачиваться заранее в `data/code-llm/models`. После скачивания `./scripts/code-llm.sh select <profile>` автоматически переключится с Hugging Face auto-download на локальный GGUF файл.
+Profiles can be pre-downloaded to `data/code-llm/models`. After download, `./scripts/code-llm.sh select <profile>` automatically switches from Hugging Face auto-download to the local GGUF file.
 
 ```bash
 ./scripts/code-llm.sh download gemma4-fast
@@ -54,34 +54,34 @@
 ./scripts/code-llm.sh download glm5-extreme
 ```
 
-Проверить download-план без загрузки:
+Check the download plan without downloading:
 
 ```bash
 DRY_RUN=1 ./scripts/code-llm.sh download glm5-extreme
 ```
 
-Для gated моделей добавьте `HF_TOKEN` в `.env`. GLM-5.1 профиль требует минимум 180 GiB свободного места по проверке скрипта, чтобы оставить запас на кеш и временные файлы.
+For gated models, add `HF_TOKEN` to `.env`. The GLM-5.1 profile requires at least 180 GiB of free disk space according to the script check, leaving room for cache and temporary files.
 
 ## GLM 5+ engine
 
-Обычный `ghcr.io/ggml-org/llama.cpp:server-cuda` подходит для Gemma/Qwen профилей, но для GLM-5.1 нужны дополнительные флаги `-mla`, `-khad`, `-mqkv`, `-muge`, `-wgt` и `-cuda`, которых нет в проверенном mainline образе. Поэтому GLM профили переключают compose на локальный образ `self-hosted-ai-ik-llama.cpp:cuda`.
+The standard `ghcr.io/ggml-org/llama.cpp:server-cuda` image works for Gemma/Qwen profiles, but GLM-5.1 needs the additional flags `-mla`, `-khad`, `-mqkv`, `-muge`, `-wgt`, and `-cuda`, which are not present in the verified mainline image. GLM profiles therefore switch compose to the local image `self-hosted-ai-ik-llama.cpp:cuda`.
 
-Собрать его:
+Build it:
 
 ```bash
 ./scripts/code-llm.sh build-engine ik
 ```
 
-На проверенной RTX 5090 используется:
+The verified RTX 5090 setup uses:
 
 ```text
 IK_LLAMA_CUDA_ARCHITECTURES=120
 IK_LLAMA_DEFAULT_BUILD_JOBS=16
 ```
 
-Архитектура `120` нужна для Blackwell/RTX 5090. На другой NVIDIA GPU задайте подходящее значение, например `89` для Ada, `86` для Ampere consumer, `80` для A100, `75` для Turing. Слишком высокий параллелизм сборки может ронять `nvcc` на CUDA 12.8 + `ik_llama.cpp`; поэтому default зафиксирован на `16`, а не на `8`, и при стабильной toolchain его можно поднять через `IK_LLAMA_BUILD_JOBS`.
+Architecture `120` is required for Blackwell/RTX 5090. On another NVIDIA GPU, set the appropriate value, for example `89` for Ada, `86` for Ampere consumer, `80` for A100, or `75` for Turing. Excessive build parallelism can crash `nvcc` on CUDA 12.8 + `ik_llama.cpp`; the default is therefore fixed at `16`, not `8`, and can be raised with `IK_LLAMA_BUILD_JOBS` when the toolchain is stable.
 
-Запуск GLM после сборки и скачивания:
+Run GLM after building the engine and downloading the model:
 
 ```bash
 ./scripts/code-llm.sh download glm5-extreme
@@ -90,7 +90,7 @@ IK_LLAMA_DEFAULT_BUILD_JOBS=16
 
 ## API
 
-После запуска:
+After startup:
 
 | Endpoint | URL |
 | --- | --- |
@@ -101,7 +101,7 @@ IK_LLAMA_DEFAULT_BUILD_JOBS=16
 | Open WebUI | `http://localhost:3000` |
 | Code LLM Manager | `http://127.0.0.1:8091` |
 
-Локальный API key по умолчанию фиктивный: `local-code-llm`. Если нужен настоящий bearer-token на самом `llama-server`, задайте одинаковые значения:
+The default local API key is a placeholder: `local-code-llm`. To require a real bearer token on `llama-server`, set matching values:
 
 ```bash
 CODE_LLM_API_KEY=local-secret
@@ -110,7 +110,7 @@ OPEN_WEBUI_OPENAI_API_KEYS=local-secret
 
 ## Open WebUI
 
-Overlay `compose.code-llm.yaml` добавляет в Open WebUI внешний OpenAI-compatible backend:
+The `compose.code-llm.yaml` overlay adds an external OpenAI-compatible backend to Open WebUI:
 
 ```text
 OPENAI_API_BASE_URLS=http://code-llm:8080/v1
@@ -118,36 +118,36 @@ OPENAI_API_KEYS=local-code-llm
 DEFAULT_MODELS=code/gemma4-fast
 ```
 
-Если Open WebUI уже запускался и PersistentConfig сохранил старые Connections, добавьте backend вручную в Admin Settings -> Connections -> OpenAI:
+If Open WebUI has already run and PersistentConfig kept old Connections, add the backend manually in Admin Settings -> Connections -> OpenAI:
 
 - URL: `http://code-llm:8080/v1`
 - Key: `local-code-llm`
-- Model filter: текущий alias, например `code/gemma4-fast`
+- Model filter: active alias, for example `code/gemma4-fast`
 
 ## Manager UI
 
-Для повседневного управления coding backend есть локальный manager UI:
+For day-to-day coding backend management, use the local manager UI:
 
 ```bash
 ./scripts/code-llm-manager.sh start
 ```
 
-Откройте `http://127.0.0.1:8091`. UI показывает текущий профиль, состояние `code-llm` и Open WebUI контейнеров, RAM, VRAM, место на диске под GGUF, локальное наличие файлов, последние jobs и логи `llama-server`.
+Open `http://127.0.0.1:8091`. The UI shows the active profile, `code-llm` and Open WebUI container state, RAM, VRAM, GGUF disk usage, local file availability, recent jobs, and `llama-server` logs.
 
-Доступные операции:
+Available operations:
 
-- `Unload`: остановить только `code-llm` и освободить RAM/VRAM.
-- `Start`: поднять текущий профиль.
-- `Switch`: выбрать профиль, пересоздать `llama-server`, прогнать smoke test.
-- `Download`: скачать GGUF по профилю.
-- `Dry run`: проверить download-план без загрузки.
-- `Add or update model`: добавить новую запись в `config/code-llm-models.tsv` и `config/code-llm-downloads.tsv`.
+- `Unload`: stop only `code-llm` and release RAM/VRAM.
+- `Start`: start the active profile.
+- `Switch`: select a profile, recreate `llama-server`, and run the smoke test.
+- `Download`: download GGUF for a profile.
+- `Dry run`: check the download plan without downloading.
+- `Add or update model`: add a new entry to `config/code-llm-models.tsv` and `config/code-llm-downloads.tsv`.
 
-UI запускается отдельным контейнером с доступом к Docker socket и репозиторию, потому что ему нужно выполнять `scripts/code-llm.sh`, смотреть контейнеры и читать `nvidia-smi`. По умолчанию порт проброшен только на `127.0.0.1`, без авторизации. Для доступа из LAN задайте `CODE_LLM_MANAGER_BIND=0.0.0.0` только в доверенной сети.
+The UI runs in a separate container with access to the Docker socket and the repository because it must execute `scripts/code-llm.sh`, inspect containers, and read `nvidia-smi`. By default the port is bound only to `127.0.0.1` and has no authentication. For LAN access, set `CODE_LLM_MANAGER_BIND=0.0.0.0` only on a trusted network.
 
-Новые модели добавляются как профиль llama.cpp. Для обычных Gemma/Qwen/Qwen-Coder достаточно HF repo/file и alias. Для GLM 5+ используйте id с префиксом `glm5-`: `scripts/code-llm.sh` тогда автоматически выберет `ik_llama.cpp` image и GLM tensor placement.
+New models are added as llama.cpp profiles. For regular Gemma/Qwen/Qwen-Coder models, HF repo/file and alias are enough. For GLM 5+, use an id with the `glm5-` prefix: `scripts/code-llm.sh` will then automatically select the `ik_llama.cpp` image and GLM tensor placement.
 
-## Клиенты
+## Clients
 
 OpenCode:
 
@@ -171,23 +171,23 @@ source config/code-agents/claude-code.env
 claude --model code/gemma4-fast
 ```
 
-Claude Code требует Anthropic Messages gateway (`/v1/messages` и `/v1/messages/count_tokens`). llama.cpp заявляет Anthropic Messages compatibility, но этот путь нужно проверять именно вашей версией Claude Code; для OpenCode/Cline/Roo основной и более предсказуемый путь - OpenAI-compatible `/v1`.
+Claude Code requires an Anthropic Messages gateway (`/v1/messages` and `/v1/messages/count_tokens`). llama.cpp declares Anthropic Messages compatibility, but this path must be verified with the exact Claude Code version in use. For OpenCode/Cline/Roo, the primary and more predictable path is OpenAI-compatible `/v1`.
 
-## Проверка
+## Verification
 
 ```bash
 ./scripts/code-llm.sh smoke
 ```
 
-Smoke test проверяет:
+The smoke test checks:
 
 - `/health`
 - `/v1/models`
-- короткий `/v1/chat/completions`
+- short `/v1/chat/completions`
 - forced tool-call request
-- доступность `http://code-llm:8080/v1` из контейнера Open WebUI
+- `http://code-llm:8080/v1` reachability from the Open WebUI container
 
-Для жесткого падения на tool-call проверке:
+To fail hard on the tool-call check:
 
 ```bash
 STRICT_TOOL_SMOKE=1 ./scripts/code-llm.sh smoke

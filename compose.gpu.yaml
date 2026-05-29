@@ -24,7 +24,7 @@ services:
               capabilities: [gpu]
 
   dcgm-exporter:
-    image: nvcr.io/nvidia/k8s/dcgm-exporter:${DCGM_EXPORTER_TAG:-4.5.3-4.8.2-distroless}
+    image: ${DCGM_EXPORTER_IMAGE:-nvidia/dcgm-exporter}:${DCGM_EXPORTER_TAG:-4.5.2-4.8.1-distroless}
     restart: unless-stopped
     cap_add:
       - SYS_ADMIN
